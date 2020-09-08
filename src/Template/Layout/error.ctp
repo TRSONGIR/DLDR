@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -55,9 +60,9 @@
 
 <?= $this->element('js_vars'); ?>
 
-<?php
-echo $this->Assets->script('/js/ads.js');
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
+<?php
 if ((bool)get_option('combine_minify_css_js', false)) {
     echo $this->Assets->script('/build/js/dashboard.min.js?ver=' . APP_VERSION);
 } else {

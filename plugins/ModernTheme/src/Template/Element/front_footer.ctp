@@ -1,8 +1,17 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <footer>
-    <?php if ($this->request->params['action'] === 'home') : ?>
+    <?php if ($this->request->getParam('action') === 'home') : ?>
         <div class="payment-methods">
             <div class="container text-center">
-                <?= $this->Html->image('Payment-Methods.png'); ?>
+                <?php foreach (get_withdrawal_methods() as $method) : ?>
+                    <?php if ($method['image']) : ?>
+                        <?= $this->Assets->image($method['image']); ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </div>
         </div>
     <?php endif; ?>
@@ -10,12 +19,13 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-4 bottom-menu">
-                    <ul class="list-inline">
-                        <li><a href="<?= $this->Url->build('/pages/privacy'); ?>"><?= __('Privacy Policy') ?></a>
-                        </li>
-                        <li><a href="<?= $this->Url->build('/pages/terms'); ?>"><?= __('Terms of Use') ?></a>
-                        </li>
-                    </ul>
+                    <?=
+                    menu_display('menu_footer', [
+                        'ul_class' => 'list-inline',
+                        'li_class' => '',
+                        'a_class' => '',
+                    ]);
+                    ?>
                 </div>
                 <div class="col-sm-4 social-links">
                     <ul class="list-inline">
@@ -32,7 +42,7 @@
                     </ul>
                 </div>
                 <div class="col-sm-4 copyright">
-                    <div><?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?><br>طراحی و برنامه نویسی توسط <a href="http://rtlscript.ir" target="_blank">RTLscript</a></div>
+                    <div><?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?></div>
 
                 </div>
             </div>
@@ -42,9 +52,9 @@
 
 <?= $this->element('js_vars'); ?>
 
-<?php
-echo $this->Assets->script('/js/ads.js');
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
+<?php
 if ((bool)get_option('combine_minify_css_js', false)) {
     echo $this->Assets->script('/build/js/script.min.js?ver=' . APP_VERSION);
 } else {
@@ -59,15 +69,22 @@ if ((bool)get_option('combine_minify_css_js', false)) {
 ?>
 
 <?php if (in_array(get_option('captcha_type', 'recaptcha'), ['recaptcha', 'invisible-recaptcha'])) : ?>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
+    <script src="https://www.recaptcha.net/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
             async defer></script>
 <?php endif; ?>
 
 <?php if (get_option('captcha_type') == 'solvemedia') : ?>
-    <?php
-    $sm_server = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://api" : "https://api-secure";
-    ?>
-    <script type="text/javascript" src="<?= $sm_server ?>.solvemedia.com/papi/challenge.ajax"></script>
+    <script language="javascript" type="text/javascript">
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+
+      if (location.protocol === 'https:') {
+        script.src = 'https://api-secure.solvemedia.com/papi/challenge.ajax';
+      } else {
+        script.src = 'http://api.solvemedia.com/papi/challenge.ajax';
+      }
+      document.body.appendChild(script);
+    </script>
 <?php endif; ?>
 
 <?= $this->fetch('scriptBottom') ?>

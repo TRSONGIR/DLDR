@@ -12,12 +12,12 @@ class Version120 extends AbstractMigration
 
         $options = $this->table('options');
 
-        $rows = array(
-            array(
+        $rows = [
+            [
                 'name' => 'enable_advertising',
-                'value' => 'yes'
-            )
-        );
+                'value' => 'yes',
+            ],
+        ];
 
         $options->insert($rows);
         $options->saveData();
@@ -29,7 +29,7 @@ class Version120 extends AbstractMigration
 
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
-        $items = implode(",", array("'counter_value'"));
+        $items = implode(",", ["'counter_value'"]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
     }
 }

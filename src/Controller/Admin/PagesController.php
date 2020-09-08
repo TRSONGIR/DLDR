@@ -2,9 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\PagesTable $Pages
+ */
 class PagesController extends AppAdminController
 {
     public function index()
@@ -19,17 +21,18 @@ class PagesController extends AppAdminController
     {
         $page = $this->Pages->newEntity();
 
-        if ($this->request->is('post')) {
-            if (isset($this->request->data['slug']) && !empty($this->request->data['slug'])) {
-                $this->request->data['slug'] = $this->Pages->createSlug($this->request->data['slug']);
+        if ($this->getRequest()->is('post')) {
+            if (!empty($this->getRequest()->getData('slug'))) {
+                $this->getRequest()->data['slug'] = $this->Pages->createSlug($this->getRequest()->getData('slug'));
             } else {
-                $this->request->data['slug'] = $this->Pages->createSlug($this->request->data['title']);
+                $this->getRequest()->data['slug'] = $this->Pages->createSlug($this->getRequest()->getData('title'));
             }
 
-            $page = $this->Pages->patchEntity($page, $this->request->data);
+            $page = $this->Pages->patchEntity($page, $this->getRequest()->getData());
 
             if ($this->Pages->save($page)) {
                 $this->Flash->success(__('Page has been added.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
@@ -43,9 +46,9 @@ class PagesController extends AppAdminController
             throw new NotFoundException(__('Invalid Page'));
         }
 
-        if (isset($this->request->query['lang']) && isset(get_site_languages()[$this->request->query['lang']])) {
-            //$page->_locale = $this->request->query['lang'];
-            $this->Pages->locale($this->request->query['lang']);
+        if ($this->getRequest()->getQuery('lang') && isset(get_site_languages()[$this->getRequest()->getQuery('lang')])) {
+            //$page->_locale = $this->getRequest()->getQuery('lang');
+            $this->Pages->locale($this->getRequest()->getQuery('lang'));
         }
 
         $page = $this->Pages->get($id);
@@ -53,17 +56,18 @@ class PagesController extends AppAdminController
             throw new NotFoundException(__('Invalid Page'));
         }
 
-        if ($this->request->is(['post', 'put'])) {
-            if (isset($this->request->data['slug']) && !empty($this->request->data['slug'])) {
-                $this->request->data['slug'] = $this->Pages->createSlug($this->request->data['slug'], $id);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            if (!empty($this->getRequest()->getData('slug'))) {
+                $this->getRequest()->data['slug'] = $this->Pages->createSlug($this->getRequest()->getData('slug'), $id);
             } else {
-                $this->request->data['slug'] = $this->Pages->createSlug($this->request->data['title'], $id);
+                $this->getRequest()->data['slug'] = $this->Pages->createSlug($this->getRequest()->getData('title'), $id);
             }
 
-            $page = $this->Pages->patchEntity($page, $this->request->data);
+            $page = $this->Pages->patchEntity($page, $this->getRequest()->getData());
 
             if ($this->Pages->save($page)) {
                 $this->Flash->success(__('Page has been updated.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
@@ -73,7 +77,7 @@ class PagesController extends AppAdminController
 
     public function delete($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->getRequest()->allowMethod(['post', 'delete']);
 
         /*
         if(in_array($id, [1, 2, 3, 4, 5]) ) {
@@ -86,6 +90,7 @@ class PagesController extends AppAdminController
 
         if ($this->Pages->delete($page)) {
             $this->Flash->success(__('The page with id: {0} has been deleted.', $page->id));
+
             return $this->redirect(['action' => 'index']);
         }
     }

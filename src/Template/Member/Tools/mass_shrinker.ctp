@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
 $this->assign('title', __('Mass Shrinker'));
 $this->assign('description', '');
 $this->assign('content_title', __('Mass Shrinker'));
@@ -7,9 +11,6 @@ $this->assign('content_title', __('Mass Shrinker'));
 
 <div class="box box-primary">
     <div class="box-body">
-        <?php if ($notice) : ?>
-            <div class="alert alert-danger" role="alert"><i class="fa fa-exclamation-triangle"></i><?= $notice ?></div>
-        <?php endif; ?>
 
         <p><?= __('Enter up to {0} URLs (one per line) to be shrunk and added to your account',
                 get_option('mass_shrinker_limit', 20)) ?></p>
@@ -20,7 +21,7 @@ $this->assign('content_title', __('Mass Shrinker'));
         <?php if (isset($results) && is_array($results)) : ?>
             <div class="well">
                 <?php foreach ($results as $result) : ?>
-                    <p><?= $result['url'] ?></p>
+                    <p><?= h($result['url']) ?></p>
                     <?php if ($result['short'] != 'error'): ?>
                         <p class="text-success" style="font-weight: bold;"><?= get_short_url($result['short'],
                                 $result['domain']); ?></p>
@@ -45,7 +46,7 @@ $this->assign('content_title', __('Mass Shrinker'));
             <?= $this->Form->create($link); ?>
 
             <?=
-            $this->Form->input('urls', [
+            $this->Form->control('urls', [
                 'label' => false,
                 'class' => 'form-control',
                 'type' => 'textarea'
@@ -57,7 +58,7 @@ $this->assign('content_title', __('Mass Shrinker'));
             $ads_options = get_allowed_ads();
 
             if (count($ads_options) > 1) {
-                echo $this->Form->input('ad_type', [
+                echo $this->Form->control('ad_type', [
                     'label' => __('Advertising Type'),
                     'options' => $ads_options,
                     'default' => get_option('member_default_advert', 1),

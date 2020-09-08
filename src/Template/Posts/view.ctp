@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Post $post
+ */
 $this->assign('title', ($post->meta_title) ?: $post->title);
 $this->assign('description', $post->meta_description);
 $this->assign('content_title', $post->title);
@@ -68,6 +72,7 @@ $this->assign('content_title', $post->title);
             <div id="disqus_thread"></div>
             <script>
               var disqus_config = function () {
+                this.language = "<?= locale_get_primary_language(null) ?>"
                 this.page.url = '<?= $post_url; ?>'
                 this.page.identifier = 'blog-<?= locale_get_default() ?>-<?= $post->id ?>'
                 this.page.title = '<?= h($post->title); ?>'

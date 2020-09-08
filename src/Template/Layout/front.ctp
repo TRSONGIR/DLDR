@@ -1,4 +1,9 @@
-<?php $user = $this->request->session()->read('Auth.User'); ?>
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
+<?php $user = $this->request->getSession()->read('Auth.User'); ?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 
@@ -8,6 +13,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="<?= h($this->fetch('description')); ?>">
+    <meta name="keywords" content="<?= h(get_option('seo_keywords')); ?>">
 
     <?= $this->Html->meta('icon'); ?>
 
@@ -15,7 +21,8 @@
     <?= $this->Assets->css('/vendor/font-awesome/css/font-awesome.min.css?ver=' . APP_VERSION); ?>
     <?= $this->Assets->css('/vendor/animate.min.css?ver=' . APP_VERSION); ?>
 
-    <link href="//fonts.googleapis.com/css?family=Droid+Serif:400,400i,700,700i%7CMontserrat:400,700%7CRoboto+Slab:100,300,400,700" rel="stylesheet">
+    <link href="//fonts.googleapis.com/css?family=Droid+Serif:400,400i,700,700i%7CMontserrat:400,700%7CRoboto+Slab:100,300,400,700"
+          rel="stylesheet">
 
     <?= $this->Assets->css('front.css?ver=' . APP_VERSION); ?>
     <?= $this->Assets->css('app.css?ver=' . APP_VERSION); ?>
@@ -40,7 +47,7 @@
 
 </head>
 
-<body id="page-top" class="index <?= ($this->request->here == $this->request->webroot) ? '' : 'inner-page' ?>">
+<body id="page-top" class="index <?= ($this->request->getParam('_name') === 'home') ? 'home' : 'inner-page' ?>">
 <?= get_option('after_body_tag_code'); ?>
 <!-- Navigation -->
 <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
@@ -62,30 +69,18 @@
                 $class = 'logo-image';
             }
             ?>
-            <a class="navbar-brand <?= $class ?>" href="<?= $this->Url->build('/'); ?>"><?= $logo['content'] ?></a>
+            <a class="navbar-brand <?= $class ?>" href="<?= build_main_domain_url('/'); ?>"><?= $logo['content'] ?></a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <li class="hidden">
-                    <a href="#page-top"></a>
-                </li>
-                <li>
-                    <a href="<?= $this->Url->build('/'); ?>"><?= __('Home') ?></a>
-                </li>
-                <?php if (get_option('enable_advertising', 'yes') == 'yes') : ?>
-                    <li>
-                        <a href="<?= $this->Url->build('/advertising-rates'); ?>"><?= __('Advertising') ?></a>
-                    </li>
-                <?php endif; ?>
-                <li>
-                    <a href="<?= $this->Url->build('/payout-rates'); ?>"><?= __('Payout Rates') ?></a>
-                </li>
-                <li>
-                    <a href="<?= $this->Url->build('/member/dashboard'); ?>"><?= __('My Account') ?></a>
-                </li>
-            </ul>
+            <?=
+            menu_display('menu_main', [
+                'ul_class' => 'nav navbar-nav navbar-right',
+                'li_class' => '',
+                'a_class' => '',
+            ], true);
+            ?>
         </div>
         <!-- /.navbar-collapse -->
     </div>
@@ -115,18 +110,19 @@
                 </ul>
             </div>
             <div class="col-md-4">
-                <ul class="list-inline quicklinks">
-                    <li><a href="<?= $this->Url->build('/pages/privacy'); ?>"><?= __('Privacy Policy') ?></a>
-                    </li>
-                    <li><a href="<?= $this->Url->build('/pages/terms'); ?>"><?= __('Terms of Use') ?></a>
-                    </li>
-                </ul>
+                <?=
+                menu_display('menu_footer', [
+                    'ul_class' => 'list-inline quicklinks',
+                    'li_class' => '',
+                    'a_class' => '',
+                ]);
+                ?>
             </div>
         </div>
     </div>
 </footer>
 
-<?= $this->Assets->script('/js/ads.js'); ?>
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
 <?= $this->Assets->script('/vendor/jquery.min.js?ver=' . APP_VERSION); ?>
 <?= $this->Assets->script('/vendor/bootstrap/js/bootstrap.min.js?ver=' . APP_VERSION); ?>
@@ -140,19 +136,26 @@
 <?= $this->Assets->script('app.js?ver=' . APP_VERSION); ?>
 
 <?php if (in_array(get_option('captcha_type', 'recaptcha'), ['recaptcha', 'invisible-recaptcha'])) : ?>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
+    <script src="https://www.recaptcha.net/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
             async defer></script>
 <?php endif; ?>
 
 <?php if (get_option('captcha_type') == 'solvemedia') : ?>
-    <?php
-    $sm_server = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://api" : "https://api-secure";
-    ?>
-    <script type="text/javascript" src="<?= $sm_server ?>.solvemedia.com/papi/challenge.ajax"></script>
+    <script language="javascript" type="text/javascript">
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+
+      if (location.protocol === 'https:') {
+        script.src = 'https://api-secure.solvemedia.com/papi/challenge.ajax';
+      } else {
+        script.src = 'http://api.solvemedia.com/papi/challenge.ajax';
+      }
+      document.body.appendChild(script);
+    </script>
 <?php endif; ?>
 
+<?= $this->fetch('scriptBottom') ?>
 <?= get_option('footer_code'); ?>
 
 </body>
-
 </html>

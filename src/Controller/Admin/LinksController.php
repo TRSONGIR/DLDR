@@ -2,31 +2,45 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Event\Event;
+use Cake\Http\Exception\ForbiddenException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\LinksTable $Links
+ * @property \App\Controller\Component\CaptchaComponent $Captcha
+ */
 class LinksController extends AppAdminController
 {
+    public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+
+        if (in_array($this->getRequest()->getParam('action'), ['mass'])) {
+            $this->getEventManager()->off($this->Security);
+        }
+    }
+
     public function index()
     {
         $conditions = [];
 
-        $filter_fields = ['user_id', 'alias', 'ad_type', 'title_desc'];
+        $filter_fields = ['id', 'user_id', 'alias', 'ad_type', 'title_desc'];
 
         //Transform POST into GET
-        if ($this->request->is(['post', 'put']) && isset($this->request->data['Filter'])) {
+        if ($this->getRequest()->is(['post', 'put']) && isset($this->getRequest()->data['Filter'])) {
             $filter_url = [];
 
-            $filter_url['controller'] = $this->request->params['controller'];
+            $filter_url['controller'] = $this->getRequest()->params['controller'];
 
-            $filter_url['action'] = $this->request->params['action'];
+            $filter_url['action'] = $this->getRequest()->params['action'];
 
             // We need to overwrite the page every time we change the parameters
             $filter_url['page'] = 1;
 
             // for each filter we will add a GET parameter for the generated url
-            foreach ($this->request->data['Filter'] as $name => $value) {
-                if (in_array($name, $filter_fields) && strlen($value) > 0) {
+            foreach ($this->getRequest()->data['Filter'] as $name => $value) {
+                if (in_array($name, $filter_fields) && strlen($value)) {
                     // You might want to sanitize the $value here
                     // or even do a urlencode to be sure
                     $filter_url[$name] = urlencode($value);
@@ -37,23 +51,23 @@ class LinksController extends AppAdminController
             return $this->redirect($filter_url);
         } else {
             // Inspect all the named parameters to apply the filters
-            foreach ($this->request->query as $param_name => $value) {
+            foreach ($this->getRequest()->getQuery() as $param_name => $value) {
                 $value = urldecode($value);
                 if (in_array($param_name, $filter_fields)) {
                     if (in_array($param_name, ['alias'])) {
                         $conditions[] = [
-                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%']
+                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%'],
                         ];
                     } elseif (in_array($param_name, ['title_desc'])) {
                         $conditions['OR'] = [
-                            array('Links.title LIKE' => '%' . $value . '%'),
-                            array('Links.description LIKE' => '%' . $value . '%'),
-                            array('Links.url LIKE' => '%' . $value . '%')
+                            ['Links.title LIKE' => '%' . $value . '%'],
+                            ['Links.description LIKE' => '%' . $value . '%'],
+                            ['Links.url LIKE' => '%' . $value . '%'],
                         ];
-                    } elseif (in_array($param_name, ['user_id', 'ad_type'])) {
+                    } elseif (in_array($param_name, ['id', 'user_id', 'ad_type'])) {
                         $conditions['Links.' . $param_name] = $value;
                     }
-                    $this->request->data['Filter'][$param_name] = $value;
+                    $this->getRequest()->data['Filter'][$param_name] = $value;
                 }
             }
         }
@@ -74,18 +88,18 @@ class LinksController extends AppAdminController
         $filter_fields = ['id', 'user_id', 'alias', 'title_desc'];
 
         //Transform POST into GET
-        if ($this->request->is(['post', 'put']) && isset($this->request->data['Filter'])) {
+        if ($this->getRequest()->is(['post', 'put']) && isset($this->getRequest()->data['Filter'])) {
             $filter_url = [];
 
-            $filter_url['controller'] = $this->request->params['controller'];
+            $filter_url['controller'] = $this->getRequest()->params['controller'];
 
-            $filter_url['action'] = $this->request->params['action'];
+            $filter_url['action'] = $this->getRequest()->params['action'];
 
             // We need to overwrite the page every time we change the parameters
             $filter_url['page'] = 1;
 
             // for each filter we will add a GET parameter for the generated url
-            foreach ($this->request->data['Filter'] as $name => $value) {
+            foreach ($this->getRequest()->data['Filter'] as $name => $value) {
                 if (in_array($name, $filter_fields) && $value) {
                     // You might want to sanitize the $value here
                     // or even do a urlencode to be sure
@@ -97,23 +111,23 @@ class LinksController extends AppAdminController
             return $this->redirect($filter_url);
         } else {
             // Inspect all the named parameters to apply the filters
-            foreach ($this->request->query as $param_name => $value) {
+            foreach ($this->getRequest()->getQuery() as $param_name => $value) {
                 $value = urldecode($value);
                 if (in_array($param_name, $filter_fields)) {
                     if (in_array($param_name, ['alias'])) {
                         $conditions[] = [
-                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%']
+                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%'],
                         ];
                     } elseif (in_array($param_name, ['title_desc'])) {
                         $conditions['OR'] = [
-                            array('Links.title LIKE' => '%' . $value . '%'),
-                            array('Links.description LIKE' => '%' . $value . '%'),
-                            array('Links.url LIKE' => '%' . $value . '%')
+                            ['Links.title LIKE' => '%' . $value . '%'],
+                            ['Links.description LIKE' => '%' . $value . '%'],
+                            ['Links.url LIKE' => '%' . $value . '%'],
                         ];
                     } elseif (in_array($param_name, ['id', 'user_id'])) {
                         $conditions['Links.' . $param_name] = $value;
                     }
-                    $this->request->data['Filter'][$param_name] = $value;
+                    $this->getRequest()->data['Filter'][$param_name] = $value;
                 }
             }
         }
@@ -134,18 +148,18 @@ class LinksController extends AppAdminController
         $filter_fields = ['id', 'user_id', 'alias', 'title_desc'];
 
         //Transform POST into GET
-        if ($this->request->is(['post', 'put']) && isset($this->request->data['Filter'])) {
+        if ($this->getRequest()->is(['post', 'put']) && isset($this->getRequest()->data['Filter'])) {
             $filter_url = [];
 
-            $filter_url['controller'] = $this->request->params['controller'];
+            $filter_url['controller'] = $this->getRequest()->params['controller'];
 
-            $filter_url['action'] = $this->request->params['action'];
+            $filter_url['action'] = $this->getRequest()->params['action'];
 
             // We need to overwrite the page every time we change the parameters
             $filter_url['page'] = 1;
 
             // for each filter we will add a GET parameter for the generated url
-            foreach ($this->request->data['Filter'] as $name => $value) {
+            foreach ($this->getRequest()->data['Filter'] as $name => $value) {
                 if (in_array($name, $filter_fields) && $value) {
                     // You might want to sanitize the $value here
                     // or even do a urlencode to be sure
@@ -157,23 +171,23 @@ class LinksController extends AppAdminController
             return $this->redirect($filter_url);
         } else {
             // Inspect all the named parameters to apply the filters
-            foreach ($this->request->query as $param_name => $value) {
+            foreach ($this->getRequest()->getQuery() as $param_name => $value) {
                 $value = urldecode($value);
                 if (in_array($param_name, $filter_fields)) {
                     if (in_array($param_name, ['alias'])) {
                         $conditions[] = [
-                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%']
+                            ['Links.' . $param_name . ' LIKE' => '%' . $value . '%'],
                         ];
                     } elseif (in_array($param_name, ['title_desc'])) {
                         $conditions['OR'] = [
-                            array('Links.title LIKE' => '%' . $value . '%'),
-                            array('Links.description LIKE' => '%' . $value . '%'),
-                            array('Links.url LIKE' => '%' . $value . '%')
+                            ['Links.title LIKE' => '%' . $value . '%'],
+                            ['Links.description LIKE' => '%' . $value . '%'],
+                            ['Links.url LIKE' => '%' . $value . '%'],
                         ];
                     } elseif (in_array($param_name, ['id', 'user_id'])) {
                         $conditions['Links.' . $param_name] = $value;
                     }
-                    $this->request->data['Filter'][$param_name] = $value;
+                    $this->getRequest()->data['Filter'][$param_name] = $value;
                 }
             }
         }
@@ -187,70 +201,192 @@ class LinksController extends AppAdminController
         $this->set('links', $links);
     }
 
-    public function edit($alias = null)
+    public function edit($id = null)
     {
-        if (!$alias) {
+        if (!$id) {
             throw new NotFoundException(__('Invalid link'));
         }
 
-        $link = $this->Links->findByAlias($alias)->first();
+        /** @var \App\Model\Entity\Link $link */
+        $link = $this->Links->findById($id)->first();
         if (!$link) {
             throw new NotFoundException(__('Invalid link'));
         }
 
-        if ($this->request->is(['post', 'put'])) {
-            $this->request->data['user_id'] = $link->user_id;
-            $link = $this->Links->patchEntity($link, $this->request->data);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $this->setRequest($this->getRequest()->withData('user_id', $link->user_id));
+
+            $link = $this->Links->patchEntity($link, $this->getRequest()->getData());
+
             if ($this->Links->save($link)) {
                 $this->Flash->success(__('The Link has been updated.'));
-                return $this->redirect(['action' => 'edit', $alias]);
             } else {
-                //debug( $link->errors() );
+                //debug($link->getErrors());
                 $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
             }
+
+            return $this->redirect($this->referer());
         }
         $this->set('link', $link);
     }
 
-    public function hide($alias)
+    public function hide($id)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        if ($this->getRequest()->getParam('_csrfToken') !== $this->getRequest()->getQuery('token')) {
+            throw new ForbiddenException();
+        }
 
-        $link = $this->Links->findByAlias($alias)->first();
+        if ($this->hideLink($id)) {
+            $this->Flash->success(__('The Link has been hidden.'));
+        }
+
+        return $this->redirect($this->referer());
+    }
+
+    protected function hideLink($id)
+    {
+        /** @var \App\Model\Entity\Link $link */
+        $link = $this->Links->findById($id)->first();
 
         $link->status = 2;
 
-        if ($this->Links->save($link)) {
-            $this->Flash->success(__('The Link with alias: {0} has been hided.', $alias));
-            return $this->redirect(['action' => 'index']);
+        if (!$this->Links->save($link)) {
+            return false;
         }
+
+        return true;
     }
 
-    public function unhide($alias)
+    public function unhide($id)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        if ($this->getRequest()->getParam('_csrfToken') !== $this->getRequest()->getQuery('token')) {
+            throw new ForbiddenException();
+        }
 
-        $link = $this->Links->findByAlias($alias)->first();
+        if ($this->unhideLink($id)) {
+            $this->Flash->success(__('The Link has been unhidden.'));
+        }
+
+        return $this->redirect($this->referer());
+    }
+
+    protected function unhideLink($id)
+    {
+        /** @var \App\Model\Entity\Link $link */
+        $link = $this->Links->findById($id)->first();
 
         $link->status = 1;
 
-        if ($this->Links->save($link)) {
-            $this->Flash->success(__('The Link with alias: {0} has been unhided.', $alias));
-            return $this->redirect(['action' => 'hidden']);
+        if (!$this->Links->save($link)) {
+            return false;
         }
+
+        return true;
     }
 
-    public function deactivate($alias)
+    public function deactivate($id)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        if ($this->getRequest()->getParam('_csrfToken') !== $this->getRequest()->getQuery('token')) {
+            throw new ForbiddenException();
+        }
 
-        $link = $this->Links->findByAlias($alias)->first();
+        if ($this->deactivateLink($id)) {
+            $this->Flash->success(__('The Link has been deactivated.'));
+        }
+
+        return $this->redirect($this->referer());
+    }
+
+    protected function deactivateLink($id)
+    {
+        /** @var \App\Model\Entity\Link $link */
+        $link = $this->Links->findById($id)->first();
 
         $link->status = 3;
 
-        if ($this->Links->save($link)) {
-            $this->Flash->success(__('The Link with alias: {0} has been unhided.', $alias));
-            return $this->redirect(['action' => 'hidden']);
+        if (!$this->Links->save($link)) {
+            return false;
         }
+
+        return true;
+    }
+
+    public function delete($id, $views = false)
+    {
+        if ($this->getRequest()->getParam('_csrfToken') !== $this->getRequest()->getQuery('token')) {
+            throw new ForbiddenException();
+        }
+
+        if ($this->deleteLink($id, $views)) {
+            $this->Flash->success(__('The link has been deleted.'));
+        }
+
+        return $this->redirect($this->referer());
+    }
+
+    protected function deleteLink($id, $views = false)
+    {
+        /** @var \App\Model\Entity\Link $link */
+        $link = $this->Links->findById($id)->first();
+
+        if (!$this->Links->delete($link)) {
+            return false;
+        }
+
+        if ($views) {
+            $this->Links->Statistics->deleteAll(['link_id' => $id]);
+        }
+
+        return true;
+    }
+
+    public function mass()
+    {
+        $this->getRequest()->allowMethod(['post']);
+
+        $action = $this->getRequest()->getData('action');
+        $ids = $this->getRequest()->getData('ids');
+
+        if (!$ids || !$action) {
+            return $this->redirect($this->referer());
+        }
+
+        if ($action === 'hide') {
+            foreach ($ids as $id) {
+                $this->hideLink($id);
+            }
+        }
+
+        if ($action === 'hide') {
+            foreach ($ids as $id) {
+                $this->hideLink($id);
+            }
+        }
+
+        if ($action === 'unhide') {
+            foreach ($ids as $id) {
+                $this->unhideLink($id);
+            }
+        }
+
+        if ($action === 'deactivate') {
+            foreach ($ids as $id) {
+                $this->deactivateLink($id);
+            }
+        }
+
+        if ($action === 'delete') {
+            foreach ($ids as $id) {
+                $this->deleteLink($id);
+            }
+        }
+
+        if ($action === 'delete-stats') {
+            foreach ($ids as $id) {
+                $this->deleteLink($id, true);
+            }
+        }
+
+        return $this->redirect($this->referer());
     }
 }

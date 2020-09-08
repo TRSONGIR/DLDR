@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Step 1: Database'));
 
 ?>
@@ -16,7 +19,7 @@ $this->assign('title', __('Step 1: Database'));
     ?>
 
     <?=
-    $this->Form->input('host', [
+    $this->Form->control('host', [
         'label' => __('Database Host URL'),
         'class' => 'form-control',
         'type' => 'text',
@@ -26,7 +29,7 @@ $this->assign('title', __('Step 1: Database'));
     ?>
 
     <?=
-    $this->Form->input('port', [
+    $this->Form->control('port', [
         'label' => __('Database Port'),
         'class' => 'form-control',
         'type' => 'text',
@@ -36,7 +39,7 @@ $this->assign('title', __('Step 1: Database'));
     ?>
 
     <?=
-    $this->Form->input('username', [
+    $this->Form->control('username', [
         'label' => __('Database Username'),
         'class' => 'form-control',
         'type' => 'text',
@@ -45,7 +48,7 @@ $this->assign('title', __('Step 1: Database'));
     ?>
 
     <?=
-    $this->Form->input('password', [
+    $this->Form->control('password', [
         'label' => __('Database Username Password'),
         'class' => 'form-control',
         'type' => 'password',
@@ -54,7 +57,7 @@ $this->assign('title', __('Step 1: Database'));
     ?>
 
     <?=
-    $this->Form->input('database', [
+    $this->Form->control('database', [
         'label' => __('Database Name'),
         'class' => 'form-control',
         'type' => 'text',

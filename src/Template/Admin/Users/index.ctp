@@ -1,16 +1,26 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User[]|\Cake\Collection\CollectionInterface $users
+ */
+?>
+<?php
 $this->assign('title', __('Manage Users'));
 $this->assign('description', '');
 $this->assign('content_title', __('Manage Users'));
-
 ?>
 
 <?php
 
+$yes_no = [
+    1 => __('Yes'),
+    0 => __('No'),
+];
+
 $statuses = [
     1 => __('Active'),
     2 => __('Pending'),
-    3 => __('Inactive')
+    3 => __('Inactive'),
 ]
 
 ?>
@@ -23,80 +33,97 @@ $statuses = [
 
         echo $this->Form->create(null, [
             'url' => $base_url,
-            'class' => 'form-inline'
+            'class' => 'form-inline',
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.id', [
+        $this->Form->control('Filter.id', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('Id')
+            'placeholder' => __('Id'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.status', [
+        $this->Form->control('Filter.status', [
             'label' => false,
             'options' => $statuses,
             'empty' => __('Status'),
-            'class' => 'form-control'
-        ]);
-
-        ?>
-
-        <?=
-        $this->Form->input('Filter.username', [
-            'label' => false,
             'class' => 'form-control',
-            'type' => 'text',
-            'placeholder' => __('Username')
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.email', [
+        $this->Form->control('Filter.plan_id', [
             'label' => false,
+            'options' => $plans,
+            'empty' => __('Plan'),
             'class' => 'form-control',
-            'type' => 'text',
-            'placeholder' => __('Email')
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.country', [
+        $this->Form->control('Filter.disable_earnings', [
             'label' => false,
+            'options' => $yes_no,
+            'empty' => __('Disable Earnings'),
             'class' => 'form-control',
-            'type' => 'text',
-            'placeholder' => __('Country')
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.login_ip', [
+        $this->Form->control('Filter.username', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('Login IP')
+            'placeholder' => __('Username'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.register_ip', [
+        $this->Form->control('Filter.email', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('Register IP')
+            'placeholder' => __('Email'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.other_fields', [
+        $this->Form->control('Filter.country', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('First name, last name, address')
+            'placeholder' => __('Country'),
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('Filter.login_ip', [
+            'label' => false,
+            'class' => 'form-control',
+            'type' => 'text',
+            'placeholder' => __('Login IP'),
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('Filter.register_ip', [
+            'label' => false,
+            'class' => 'form-control',
+            'type' => 'text',
+            'placeholder' => __('Register IP'),
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('Filter.other_fields', [
+            'label' => false,
+            'class' => 'form-control',
+            'type' => 'text',
+            'placeholder' => __('First name, last name, address'),
         ]);
         ?>
 
@@ -113,96 +140,211 @@ $statuses = [
     <div class="box-header with-border">
         <h3 class="box-title"><i class="fa fa-align-center"></i> <?= __('All Users') ?></h3>
     </div><!-- /.box-header -->
-    <div class="box-body no-padding table-responsive">
+    <div class="box-body no-padding">
 
-        <table class="table table-hover table-striped">
-            <tr>
-                <th><?= $this->Paginator->sort('id', __('Id')); ?></th>
-                <th><?= $this->Paginator->sort('username', __('Username')); ?></th>
-                <th><?= $this->Paginator->sort('status', __('Status')); ?></th>
-                <th><?= $this->Paginator->sort('email', __('Email')); ?></th>
-                <th><?= $this->Paginator->sort('login_ip', __('Login IP')); ?></th>
-                <th><?= $this->Paginator->sort('register_ip', __('Register IP')); ?></th>
-                <th><?= $this->Paginator->sort('modified', __('modified')); ?></th>
-                <th><?= $this->Paginator->sort('created', __('Created')); ?></th>
-                <th><?php echo __('Actions') ?></th>
-            </tr>
-
-            <!-- Here is where we loop through our $posts array, printing out post info -->
-
-            <?php foreach ($users as $user): ?>
+        <div class="table-responsive">
+            <?= $this->Form->create(null, [
+                'url' => ['controller' => 'Users', 'action' => 'mass'],
+            ]);
+            ?>
+            <table class="table table-hover table-striped">
                 <tr>
-                    <td><?= $user->id ?></td>
-                    <td>
-                        <?php echo $this->Html->link($user->username,
-                            array('controller' => 'users', 'action' => 'view', $user->id, 'prefix' => 'admin'));
-
-                        ?>
-                    </td>
-                    <td><?= $statuses[$user->status]; ?></td>
-                    <td><?= $user->email; ?></td>
-                    <td><?= $user->login_ip; ?></td>
-                    <td><?= $user->register_ip; ?></td>
-                    <td><?= display_date_timezone($user->modified); ?></td>
-                    <td><?= display_date_timezone($user->created); ?></td>
-                    <td>
-                        <?= $this->Html->link(__('Message'), ['action' => 'message', $user->id],
-                            ['class' => 'btn btn-default btn-xs']); ?>
-
-                        <?php if ($user->status === 2) : ?>
-                            <?= $this->Form->postLink(__('Resend Activation Email'),
-                                ['action' => 'resendActivation', $user->id],
-                                ['confirm' => __('Are you sure?'), 'class' => 'btn btn-info btn-xs']);
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th><?= $this->Paginator->sort('id', __('Id')); ?></th>
+                    <th><?= $this->Paginator->sort('username', __('Username')); ?></th>
+                    <th><?= $this->Paginator->sort('status', __('Status')); ?></th>
+                    <th><?= __('Plan') ?></th>
+                    <th><?= __('Expiration') ?></th>
+                    <th><?= $this->Paginator->sort('disable_earnings', __('Disable Earnings')); ?></th>
+                    <th><?= $this->Paginator->sort('email', __('Email')); ?></th>
+                    <th><?= $this->Paginator->sort('login_ip', __('Login IP')); ?></th>
+                    <th><?= $this->Paginator->sort('register_ip', __('Register IP')); ?></th>
+                    <th><?= $this->Paginator->sort('modified', __('modified')); ?></th>
+                    <th><?= $this->Paginator->sort('created', __('Created')); ?></th>
+                    <th>
+                        <div class="form-inline">
+                            <?=
+                            $this->Form->control('action', [
+                                'label' => false,
+                                'options' => [
+                                    '' => __('Mass Action'),
+                                    'activate' => __('Activate'),
+                                    'pending' => __('Pending'),
+                                    'deactivate' => __('Deactivate'),
+                                    'resendActivation' => __('Resend Activation Email'),
+                                    'delete' => __('Delete with all data'),
+                                ],
+                                'class' => 'form-control input-sm',
+                                'required' => true,
+                                'templates' => [
+                                    'inputContainer' => '{{content}}',
+                                ],
+                            ]);
                             ?>
-                        <?php endif; ?>
 
-                        <?= $this->Html->link(__('View'), ['action' => 'view', $user->id],
-                            ['class' => 'btn btn-primary btn-xs']); ?>
-
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $user->id],
-                            ['class' => 'btn btn-info btn-xs']); ?>
-
-                        <?= $this->Form->postLink(__('Deactivate'), ['action' => 'deactivate', $user->id],
-                            ['confirm' => __('Are you sure?'), 'class' => 'btn btn-danger btn-xs']);
-                        ?>
-                    </td>
+                            <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-default btn-sm']); ?>
+                        </div>
+                    </th>
                 </tr>
-            <?php endforeach; ?>
-            <?php unset($user); ?>
-        </table>
+
+                <?php foreach ($users as $user): ?>
+                    <tr>
+                        <td>
+                            <?= $this->Form->checkbox('ids[]', [
+                                'hiddenField' => false,
+                                'label' => false,
+                                'value' => $user->id,
+                                'class' => 'allcheckbox',
+                            ]);
+                            ?>
+                        </td>
+                        <td><?= $user->id ?></td>
+                        <td>
+                            <?= $this->Html->link($user->username,
+                                ['controller' => 'users', 'action' => 'view', $user->id, 'prefix' => 'admin']);
+                            ?>
+                        </td>
+                        <td><?= $statuses[$user->status]; ?></td>
+                        <td><?= h($user->plan->title); ?></td>
+                        <td><?= display_date_timezone($user->expiration); ?></td>
+                        <td><?= $yes_no[$user->disable_earnings]; ?></td>
+                        <td><?= $user->email; ?></td>
+                        <td><?= $user->login_ip; ?></td>
+                        <td><?= $user->register_ip; ?></td>
+                        <td><?= display_date_timezone($user->modified); ?></td>
+                        <td><?= display_date_timezone($user->created); ?></td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-block btn-default dropdown-toggle"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <?= __("Select Action") ?> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('View'),
+                                            ['action' => 'view', $user->id]
+                                        );
+                                        ?>
+                                    </li>
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Edit'),
+                                            ['action' => 'edit', $user->id]
+                                        );
+                                        ?>
+                                    </li>
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Send a message'),
+                                            ['action' => 'message', $user->id]
+                                        );
+                                        ?>
+                                    </li>
+
+                                    <?php if ($user->status === 2) : ?>
+                                        <li>
+                                            <?= $this->Html->link(
+                                                __('Resend Activation Email'),
+                                                [
+                                                    'action' => 'resendActivation',
+                                                    $user->id,
+                                                    'token' => $this->request->getParam('_csrfToken'),
+                                                ],
+                                                ['confirm' => __('Are you sure?')]
+                                            );
+                                            ?>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <?php if ($user->status === 1) : ?>
+                                        <li>
+                                            <?= $this->Html->link(
+                                                __('Deactivate'),
+                                                [
+                                                    'action' => 'deactivate',
+                                                    $user->id,
+                                                    'token' => $this->request->getParam('_csrfToken'),
+                                                ],
+                                                ['confirm' => __('Are you sure?')]
+                                            );
+                                            ?>
+                                        </li>
+                                    <?php endif; ?>
+
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Export'),
+                                            [
+                                                'action' => 'dataExport',
+                                                $user->id,
+                                                'token' => $this->request->getParam('_csrfToken'),
+                                            ],
+                                            ['confirm' => __('Are you sure?')]
+                                        );
+                                        ?>
+                                    </li>
+
+                                    <li role="separator" class="divider"></li>
+
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Delete'),
+                                            [
+                                                'action' => 'delete',
+                                                $user->id,
+                                                'token' => $this->request->getParam('_csrfToken'),
+                                            ],
+                                            ['confirm' => __('Are you sure?')]
+                                        );
+                                        ?>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+            <?= $this->Form->end(); ?>
+        </div>
 
     </div><!-- /.box-body -->
 </div>
 
 <ul class="pagination">
-    <!-- Shows the previous link -->
     <?php
+    $this->Paginator->setTemplates([
+        'ellipsis' => '<li><a href="javascript: void(0)">...</a></li>',
+    ]);
+
     if ($this->Paginator->hasPrev()) {
-        echo $this->Paginator->prev('«', array('tag' => 'li'), null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a'));
+        echo $this->Paginator->prev('«');
     }
 
-    ?>
-    <!-- Shows the page numbers -->
-    <?php //echo $this->Paginator->numbers();    ?>
-    <?php
-    echo $this->Paginator->numbers(array(
+    echo $this->Paginator->numbers([
         'modulus' => 4,
-        'separator' => '',
-        'ellipsis' => '<li><a>...</a></li>',
-        'tag' => 'li',
-        'currentTag' => 'a',
         'first' => 2,
-        'last' => 2
-    ));
+        'last' => 2,
+    ]);
 
-    ?>
-    <!-- Shows the next link -->
-    <?php
     if ($this->Paginator->hasNext()) {
-        echo $this->Paginator->next('»', array('tag' => 'li'), null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a'));
+        echo $this->Paginator->next('»');
     }
-
     ?>
 </ul>
+
+<?php $this->start('scriptBottom'); ?>
+<script>
+  $('#select-all').change(function() {
+    $('.allcheckbox').prop('checked', $(this).prop('checked'));
+  });
+  $('.allcheckbox').change(function() {
+    if ($(this).prop('checked') == false) {
+      $('#select-all').prop('checked', false);
+    }
+    if ($('.allcheckbox:checked').length == $('.allcheckbox').length) {
+      $('#select-all').prop('checked', true);
+    }
+  });
+</script>
+<?php $this->end(); ?>

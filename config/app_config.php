@@ -2,55 +2,72 @@
 
 use Cake\Core\Configure;
 
-define("APP_VERSION", "4.5.1");
+define("APP_VERSION", "6.4.0");
 
 // Cache
-\Cake\Cache\Cache::config('5min', [
+\Cake\Cache\Cache::setConfig('5min', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+5 minutes',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
 ]);
 
-\Cake\Cache\Cache::config('15min', [
+\Cake\Cache\Cache::setConfig('15min', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+15 minutes',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
 ]);
 
-\Cake\Cache\Cache::config('1hour', [
+\Cake\Cache\Cache::setConfig('1hour', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+1 hour',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
 ]);
 
-\Cake\Cache\Cache::config('1day', [
+\Cake\Cache\Cache::setConfig('1day', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+1 day',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
 ]);
 
-\Cake\Cache\Cache::config('1week', [
+\Cake\Cache\Cache::setConfig('1week', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+1 week',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
 ]);
 
-\Cake\Cache\Cache::config('1month', [
+\Cake\Cache\Cache::setConfig('1month', [
     'className' => 'Cake\Cache\Engine\FileEngine',
     'duration' => '+1 month',
     'serialize' => true,
     'path' => CACHE . 'models' . DS,
-    'prefix' => 'ms_'
+    'prefix' => 'ms_',
+]);
+
+\Cake\Cache\Cache::setConfig('proxy', [
+    'className' => 'Cake\Cache\Engine\FileEngine',
+    'duration' => '+1 month',
+    'serialize' => true,
+    'path' => CACHE . 'proxy' . DS,
+    'prefix' => 'ms_',
+]);
+
+// https://book.cakephp.org/3.0/en/core-libraries/logging.html#logging-scopes
+\Cake\Log\Log::setConfig('payments', [
+    'className' => 'File',
+    'path' => LOGS,
+    'levels' => [],
+    'scopes' => ['payments'],
+    'file' => 'payments.log',
 ]);
 
 /**

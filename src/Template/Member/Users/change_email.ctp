@@ -1,8 +1,13 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User $user
+ */
+?>
+<?php
 $this->assign('title', __('Change Email'));
 $this->assign('description', '');
 $this->assign('content_title', __('Change Email'));
-
 ?>
 
 <div class="box box-primary">
@@ -13,7 +18,7 @@ $this->assign('content_title', __('Change Email'));
         <?= $this->Form->hidden('id'); ?>
 
         <?=
-        $this->Form->input('email', [
+        $this->Form->control('email', [
             'label' => __('Current Email'),
             'class' => 'form-control',
             'disabled' => 'disabled'
@@ -22,7 +27,7 @@ $this->assign('content_title', __('Change Email'));
         ?>
 
         <?=
-        $this->Form->input('temp_email', [
+        $this->Form->control('temp_email', [
             'label' => __('New Email'),
             'class' => 'form-control',
             'type' => 'email'
@@ -31,7 +36,7 @@ $this->assign('content_title', __('Change Email'));
         ?>
 
         <?=
-        $this->Form->input('confirm_email', [
+        $this->Form->control('confirm_email', [
             'label' => __('Re-enter New Email'),
             'class' => 'form-control',
             'type' => 'email'

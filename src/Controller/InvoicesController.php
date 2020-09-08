@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use Cake\Event\Event;
-use Cake\Routing\Router;
+
+/**
+ * @property \App\Model\Table\InvoicesTable $Invoices
+ */
 class InvoicesController extends AppController
 {
     public function beforeFilter(Event $event)
@@ -11,8 +14,8 @@ class InvoicesController extends AppController
         parent::beforeFilter($event);
         $this->Auth->allow(['ipn']);
 
-        if (in_array($this->request->action, ['ipn'])) {
-            $this->eventManager()->off($this->Csrf);
+        if (in_array($this->getRequest()->getParam('action'), ['ipn'])) {
+            //$this->eventManager()->off($this->Csrf);
             $this->eventManager()->off($this->Security);
         }
     }
@@ -21,59 +24,183 @@ class InvoicesController extends AppController
     {
         $this->autoRender = false;
 
-        if (!empty($this->request->query['payment_method']) && !empty($this->request->data)) {
-            $payment_method = $this->request->query['payment_method'];
+        $payment_method = $this->getRequest()->getQuery('payment_method');
+
+        \Cake\Log\Log::debug($payment_method, 'payments');
+
+        if ($payment_method && !empty($this->getRequest()->getData())) {
+            \Cake\Log\Log::debug($this->getRequest()->getData(), 'payments');
 
             if ($payment_method == 'paypal') {
-                $this->ipnPaypal($this->request->data);
+                $this->ipnPaypal($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'payza') {
-                $this->ipnPayza($this->request->data);
+            if ($payment_method === 'payza') {
+                $this->ipnPayza($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'skrill') {
-                $this->ipnSkrill($this->request->data);
+            if ($payment_method === 'skrill') {
+                $this->ipnSkrill($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'webmoney') {
-                $this->ipnWebmoney($this->request->data);
+            if ($payment_method === 'webmoney') {
+                $this->ipnWebmoney($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'coinpayments') {
-                $this->ipnCoinPayments($this->request->data);
+            if ($payment_method === 'coinpayments') {
+                $this->ipnCoinPayments($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'perfectmoney') {
-                $this->ipnPerfectMoney($this->request->data);
+            if ($payment_method === 'perfectmoney') {
+                $this->ipnPerfectMoney($this->getRequest()->getData());
+
                 return null;
             }
 
-            if ($payment_method == 'payeer') {
-                $this->ipnPayeer($this->request->data);
+            if ($payment_method === 'payeer') {
+                $this->ipnPayeer($this->getRequest()->getData());
+
+                return null;
+            }
+
+            if ($payment_method === 'paytm') {
+                $this->ipnPaytm($this->getRequest()->getData());
+
                 return null;
             }
         }
 
-        // Coinbase IPN
-        $raw_body = json_decode(file_get_contents('php://input'));
-        if (isset($raw_body->type)) {
-            $this->ipnCoinbase($raw_body);
+        if ($payment_method === 'paystack') {
+            $this->ipnPaystack();
+
             return null;
         }
-		if($this->request->query['payment_method'] == 'zarinpal'){ 
-			
-			if( isset($this->request->query['Authority']) ) {
-				
-                $this->ipnZarinpal($this->request->query);
-                return null;
-			}
+
+        if ($payment_method === 'coinbase') {
+            $this->ipnCoinbase();
+
+            return null;
         }
+    }
+
+    // @see https://github.com/Paytm-Payments/Paytm_WHMCS_Kit/blob/master/Paytm_WHMCS_v6.x-7.x_Kit-master/Paytm/gateways/callback/paytm.php
+    protected function ipnPaytm($data)
+    {
+        if (isset($data['ORDERID']) && isset($data['STATUS']) && isset($data['RESPCODE']) && $data['RESPCODE'] != 325) {
+            require_once(APP . 'Library/gateways/paytm/encdec_paytm.php');
+
+            $invoice_id = (int)$data['ORDERID'];
+            $invoice = $this->Invoices->get($invoice_id);
+
+            $checksum_recv = '';
+            if (isset($data['CHECKSUMHASH'])) {
+                $checksum_recv = (isset($data['CHECKSUMHASH'])) ? $data['CHECKSUMHASH'] : '';
+            }
+
+            $checksum_status = verifychecksum_e(
+                $data,
+                html_entity_decode(get_option('paytm_merchant_key')),
+                $checksum_recv
+            );
+
+            // Create an array having all required parameters for status query.
+            $requestParamList = ["MID" => get_option('paytm_merchant_mid'), "ORDERID" => $data['ORDERID']];
+            $StatusCheckSum = getChecksumFromArray(
+                $requestParamList,
+                html_entity_decode(get_option('paytm_merchant_key'))
+            );
+            $requestParamList['CHECKSUMHASH'] = $StatusCheckSum;
+
+            // Call the PG's getTxnStatus() function for verifying the transaction status.
+            $check_status_url = 'https://securegw.paytm.in/order/status';
+
+            if ($data['STATUS'] == 'TXN_SUCCESS' && $checksum_status == "TRUE") {
+                $responseParamList = callNewAPI($check_status_url, $requestParamList);
+                if ($responseParamList['STATUS'] == 'TXN_SUCCESS' && $responseParamList['TXNAMOUNT'] == $response['TXNAMOUNT']) {
+                    $invoice->status = 1;
+                    $invoice->paid_date = date("Y-m-d H:i:s");
+                    $this->Invoices->save($invoice);
+                    $message = 'VERIFIED';
+                } else {
+                    $invoice->status = 4;
+                    $this->Invoices->save($invoice);
+                    $message = 'INVALID';
+                }
+            } elseif ($data['STATUS'] == "TXN_SUCCESS" && $checksum_status != "TRUE") {
+                $invoice->status = 4;
+                $this->Invoices->save($invoice);
+                $message = 'INVALID';
+            } else {
+                $invoice->status = 4;
+                $this->Invoices->save($invoice);
+                $message = 'INVALID';
+            }
+        }
+
+        $return_url = \Cake\Routing\Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
+    }
+
+    /**
+     * @see https://developers.paystack.co/docs/paystack-standard#section-3-handle-chargesuccess-event
+     *
+     * @return void
+     */
+    protected function ipnPaystack()
+    {
+        $body = file_get_contents("php://input");
+
+        \Cake\Log\Log::debug($_SERVER, 'payments');
+        \Cake\Log\Log::debug(json_decode($body), 'payments');
+
+        $signature = (isset($_SERVER['HTTP_X_PAYSTACK_SIGNATURE']) ? $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] : '');
+        if (!$signature) {
+            exit();
+        }
+
+        if ($signature !== hash_hmac('sha512', $body, get_option('paystack_secret_key'))) {
+            exit();
+        }
+
+        // parse event (which is json string) as object
+        // Give value to your customer but don't give any output
+        // Remember that this is a call from Paystack's servers and
+        // Your customer is not seeing the response here at all
+        $result = json_decode($body);
+
+        switch ($result->event) {
+            case 'charge.success':
+                $invoice_id = (int)explode('_', $result->data->reference)[0];
+                $invoice = $this->Invoices->get($invoice_id);
+
+                $amount = (float)$result->data->amount / 100;
+
+                if ($invoice->amount === $amount) {
+                    $invoice->status = 1;
+                    $invoice->paid_date = date("Y-m-d H:i:s");
+                    $this->Invoices->save($invoice);
+                    $message = 'VERIFIED';
+                } else {
+                    // If not, returning an error
+                    $invoice->status = 4;
+                    $this->Invoices->save($invoice);
+                    $message = 'INVALID';
+                }
+
+                $this->Invoices->successPayment($invoice);
+
+                break;
+        }
+        exit();
     }
 
     protected function ipnPayeer($data)
@@ -96,7 +223,7 @@ class InvoicesController extends AppController
                 $data['m_amount'],
                 $data['m_curr'],
                 $data['m_desc'],
-                $data['m_status']
+                $data['m_status'],
             ];
 
             // Adding additional parameters to the array if such parameters have been transferred
@@ -127,62 +254,11 @@ class InvoicesController extends AppController
                 $this->Invoices->save($invoice);
                 $message = 'INVALID';
             }
-
         }
 
         $this->Invoices->successPayment($invoice);
     }
 
-	protected function ipnZarinpal($data)
-    {
-		
-		$session = $this->request->session();
-		$invoice_id = (int)$session->read('inv_id');
-        $invoice = $this->Invoices->get($invoice_id);
-		//exit;
-		$redi = Router::url(['controller' => 'member/Invoices', 'action' => 'view', $invoice->id], true);
-		$state = 'error';
-        if($data['Status']=='OK') {
-			$sandbox = 'www';
-            if (get_option('zarinpal_sandbox', 'no') == 'yes') {
-                $sandbox = 'sandbox';
-            }
-            if($session->read('author') == $data['Authority']) {
-				$client = new \SoapClient('https://'.$sandbox.'.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']);
-
-				$result = $client->PaymentVerification(
-				[
-				'MerchantID' => get_option('zarinpal_marchent'),
-				'Authority' => $data['Authority'],
-				'Amount' => $invoice->amount,
-				]
-				);
-				if ($result->Status == 100) {
-					$invoice->status = 1;
-					$invoice->paid_date = date("Y-m-d H:i:s");
-					$this->Invoices->save($invoice);
-					$message = 'VERIFIED';
-					//$msg = 'تراکنش با موفقیت انجام شد! شماره پیگیری:'.$result->RefID." آگهی شما پس از تایید مدیر نمایش می یابد.";
-				}
-				else {
-					$invoice->status = 4;
-					$this->Invoices->save($invoice);
-					$message = 'INVALID';
-					//$msg = 'تراکنش ناموفق به دلیل:'.$result->Status;
-				}
-            }else{
-				$message = "مشکلی عجیب رخ داده است.";
-			}
-        }
-		else{
-			$message = "تراکنش توسط کاربر کنسل شد.";
-		}
-		$session->delete('author');
-		$session->delete('inv_id');
-		$this->Invoices->successPayment($invoice);
-		$this->redirect($redi);
-    }
-	
     protected function ipnPerfectMoney($data)
     {
         $perfectmoney_account = get_option('perfectmoney_account');
@@ -245,29 +321,29 @@ class InvoicesController extends AppController
         $secret = get_option('coinpayments_ipn_secret');
 
         if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
-            \Cake\Log\Log::write('error', 'No HMAC signature sent');
+            \Cake\Log\Log::write('error', 'No HMAC signature sent', 'payments');
             exit();
         }
 
         $request = file_get_contents('php://input');
         if ($request === false || empty($request)) {
-            \Cake\Log\Log::write('error', 'Error reading POST data');
+            \Cake\Log\Log::write('error', 'Error reading POST data', 'payments');
             exit();
         }
 
         $merchant = isset($_POST['merchant']) ? $_POST['merchant'] : '';
         if (empty($merchant)) {
-            \Cake\Log\Log::write('error', 'No Merchant ID passed');
+            \Cake\Log\Log::write('error', 'No Merchant ID passed', 'payments');
             exit();
         }
         if ($merchant != $merchant_id) {
-            \Cake\Log\Log::write('error', 'Invalid Merchant ID');
+            \Cake\Log\Log::write('error', 'Invalid Merchant ID', 'payments');
             exit();
         }
 
         $hmac = hash_hmac("sha512", $request, $secret);
         if ($hmac != $_SERVER['HTTP_HMAC']) {
-            \Cake\Log\Log::write('error', 'HMAC signature does not match');
+            \Cake\Log\Log::write('error', 'HMAC signature does not match', 'payments');
             exit();
         }
 
@@ -279,7 +355,7 @@ class InvoicesController extends AppController
 
         // Check amount against order total
         if ($amount1 < $invoice->amount) {
-            \Cake\Log\Log::write('error', 'Amount is less than order total!');
+            \Cake\Log\Log::write('error', 'Amount is less than order total!', 'payments');
             exit();
         }
 
@@ -297,30 +373,44 @@ class InvoicesController extends AppController
         $this->Invoices->successPayment($invoice);
     }
 
-    protected function ipnCoinbase($data)
+    protected function ipnCoinbase()
     {
-        // Todo check IPN https://developers.coinbase.com/api/v2?shell#show-a-checkout
+        // https://github.com/coinbase/coinbase-commerce-php/blob/master/examples/Webhook/Webhook.php
 
-        $invoice_id = (int)$data->data->metadata->invoice_id;
-        $invoice = $this->Invoices->get($invoice_id);
+        $secret = get_option('coinbase_api_secret');
+        $signature = (isset($_SERVER['HTTP_X_CC_WEBHOOK_SIGNATURE'])) ? $_SERVER['HTTP_X_CC_WEBHOOK_SIGNATURE'] : '';
+        $payload = trim(file_get_contents('php://input'));
 
-        if ($data->type == 'wallet:orders:paid') {
-            $invoice_amount = (float)$invoice->amount;
-            $coinbase_amount = (float)$data->data->amount->amount;
+        $data = json_decode($payload);
 
-            if ($invoice_amount != $coinbase_amount) {
-                $invoice->status = 4;
-                $this->Invoices->save($invoice);
-                $message = 'INVALID';
-            } else {
-                $invoice->status = 1;
-                $invoice->paid_date = date("Y-m-d H:i:s");
-                $this->Invoices->save($invoice);
-                $message = 'VERIFIED';
-            }
+        \Cake\Log\Log::debug($_SERVER, 'payments');
+        \Cake\Log\Log::debug($data, 'payments');
+
+        if (json_last_error()) {
+            \Cake\Log\Log::error('Invalid payload provided. No JSON object could be decoded.', 'payments');
+            exit();
         }
 
-        if ($data->type == 'wallet:orders:mispaid') {
+        if (!isset($data->event)) {
+            \Cake\Log\Log::error('Invalid payload provided.', 'payments');
+            exit();
+        }
+
+        $computedSignature = hash_hmac('sha256', $payload, $secret);
+        if (hash_equals($signature, $computedSignature)) {
+            \Cake\Log\Log::error('HMAC signature does not match', 'payments');
+            exit();
+        }
+
+        $invoice_id = (int)$data->event->data->metadata->invoice_id;
+        $invoice = $this->Invoices->get($invoice_id);
+
+        if ($data->event->type == 'charge:confirmed') {
+            $invoice->status = 1;
+            $invoice->paid_date = date("Y-m-d H:i:s");
+            $this->Invoices->save($invoice);
+            $message = 'VERIFIED';
+        } else {
             $invoice->status = 4;
             $this->Invoices->save($invoice);
             $message = 'INVALID';
@@ -332,14 +422,16 @@ class InvoicesController extends AppController
     protected function ipnPayza($data)
     {
         $token = [
-            'token' => urlencode($data['token'])
+            'token' => urlencode($data['token']),
         ];
 
-        // https://dev.payza.com/resources/references/ipn-variables
+        // https://dev.payza.eu/resources/references/ipn-variables
 
-        $url = 'https://secure.payza.com/ipn2.ashx';
+        $url = 'https://secure.payza.eu/ipn2.ashx';
 
-        $res = curlRequest($url, 'POST', $token)-body;
+        $res = curlRequest($url, 'POST', $token)->body;
+
+        \Cake\Log\Log::debug($res, 'payments');
 
         if (strlen($res) > 0) {
             $invoice_id = (int)$data['apc_1'];
@@ -370,15 +462,14 @@ class InvoicesController extends AppController
 
     protected function ipnSkrill($data)
     {
-        $concatFields = $data['merchant_id']
-            . $data['transaction_id']
-            . strtoupper(md5(get_option('skrill_secret_word')))
-            . $data['mb_amount']
-            . $data['mb_currency']
-            . $data['status'];
+        $concatFields = $data['merchant_id'] .
+            $data['transaction_id'] .
+            strtoupper(md5(get_option('skrill_secret_word'))) .
+            $data['mb_amount'] .
+            $data['mb_currency'] .
+            $data['status'];
 
         $MBEmail = get_option('skrill_email');
-
 
         $invoice_id = (int)$data['transaction_id'];
         $invoice = $this->Invoices->get($invoice_id);
@@ -408,13 +499,15 @@ class InvoicesController extends AppController
 
         // https://developer.paypal.com/docs/classic/ipn/integration-guide/IPNTesting/?mark=IPN%20troubleshoot#invalid
 
-        $paypalURL = 'https://www.sandbox.paypal.com/cgi-bin/webscr?';
+        $paypalURL = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
 
         if (get_option('paypal_sandbox', 'no') == 'no') {
-            $paypalURL = 'https://www.paypal.com/cgi-bin/webscr?';
+            $paypalURL = 'https://ipnpb.paypal.com/cgi-bin/webscr';
         }
 
         $res = curlRequest($paypalURL, 'POST', $data)->body;
+
+        \Cake\Log\Log::debug($res, 'payments');
 
         $invoice_id = (int)$data['custom'];
         $invoice = $this->Invoices->get($invoice_id);

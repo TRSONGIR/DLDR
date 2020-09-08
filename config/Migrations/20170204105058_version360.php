@@ -12,9 +12,7 @@ class Version360 extends AbstractMigration
 
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
-        $this->table('plans',[
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('plans')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -32,7 +30,7 @@ class Version360 extends AbstractMigration
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('description', 'text', [
                 'default' => null,
@@ -44,86 +42,86 @@ class Version360 extends AbstractMigration
                 'null' => false,
                 'precision' => 10,
                 'scale' => 6,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('yearly_price', 'decimal', [
                 'default' => 0,
                 'null' => false,
                 'precision' => 10,
                 'scale' => 6,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('edit_link', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('edit_long_url', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('disable_ads', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('disable_captcha', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('direct', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('alias', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('referral', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('stats', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('api_quick', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('api_mass', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('api_full', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('api_developer', 'boolean', [
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('modified', 'datetime', [
                 'default' => null,
@@ -140,20 +138,9 @@ class Version360 extends AbstractMigration
         $plans = [
             [
                 'id' => 1,
-                'title' => 'Free',
+                'title' => 'Default',
                 'enable' => 1,
-                'description' => json_decode('"<ul class=\"list-group text-center\">\n\t<li class=\"list-group' .
-                    '-item\"><i class=\"fa fa-check\"><\/i> Edit short link<\/li>\n\t<li class=\"list-group-item\"' .
-                    '><i class=\"fa fa-times\"><\/i> Change long URL<\/li>\n\t<li class=\"list-group-item\"><i ' .
-                    'class=\"fa fa-times\"><\/i> Remove ads<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa ' .
-                    'fa-times\"><\/i> Remove captcha<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-times' .
-                    '\"><\/i> Direct<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Custom ' .
-                    'alias<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Referral ' .
-                    'earnings<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Link stats' .
-                    '<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-times\"><\/i> Quick Link<\/li>\n\t' .
-                    '<li class=\"list-group-item\"><i class=\"fa fa-times\"><\/i> Mass shrinker<\/li>\n\t<li ' .
-                    'class=\"list-group-item\"><i class=\"fa fa-times\"><\/i> Full page script<\/li>\n\t<li ' .
-                    'class=\"list-group-item\"><i class=\"fa fa-times\"><\/i> Developers API<\/li>\n<\/ul>\n"'),
+                'description' => '',
                 'monthly_price' => 0,
                 'yearly_price' => 0,
                 'edit_link' => 1,
@@ -169,24 +156,13 @@ class Version360 extends AbstractMigration
                 'api_full' => 0,
                 'api_developer' => 0,
                 'modified' => date("Y-m-d H:i:s"),
-                'created' => date("Y-m-d H:i:s")
+                'created' => date("Y-m-d H:i:s"),
             ],
             [
                 'id' => 2,
                 'title' => 'Primary',
                 'enable' => 1,
-                'description' => json_decode('"<ul class=\"list-group text-center\">\n\t<li class=\"list-group' .
-                    '-item\"><i class=\"fa fa-check\"><\/i> Edit short link<\/li>\n\t<li class=\"list-group-item\"' .
-                    '><i class=\"fa fa-check\"><\/i> Change long URL<\/li>\n\t<li class=\"list-group-item\"><i ' .
-                    'class=\"fa fa-check\"><\/i> Remove ads<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa ' .
-                    'fa-check\"><\/i> Remove captcha<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-times' .
-                    '\"><\/i> Direct<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Custom ' .
-                    'alias<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Referral earnings' .
-                    '<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Link stats<\/li>\n\t<li ' .
-                    'class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Quick Link<\/li>\n\t<li class=\"list-' .
-                    'group-item\"><i class=\"fa fa-check\"><\/i> Mass shrinker<\/li>\n\t<li class=\"list-group-item' .
-                    '\"><i class=\"fa fa-times\"><\/i> Full page script<\/li>\n\t<li class=\"list-group-item\"><i ' .
-                    'class=\"fa fa-times\"><\/i> Developers API<\/li>\n<\/ul>\n"'),
+                'description' => '',
                 'monthly_price' => 1.99,
                 'yearly_price' => 19.99,
                 'edit_link' => 1,
@@ -202,24 +178,13 @@ class Version360 extends AbstractMigration
                 'api_full' => 0,
                 'api_developer' => 0,
                 'modified' => date("Y-m-d H:i:s"),
-                'created' => date("Y-m-d H:i:s")
+                'created' => date("Y-m-d H:i:s"),
             ],
             [
                 'id' => 3,
                 'title' => 'Professional',
                 'enable' => 1,
-                'description' => json_decode('"<ul class=\"list-group text-center\">\n\t<li class=\"list-group' .
-                    '-item\"><i class=\"fa fa-check\"><\/i> Edit short link<\/li>\n\t<li class=\"list-group-item\">' .
-                    '<i class=\"fa fa-check\"><\/i> Change long URL<\/li>\n\t<li class=\"list-group-item\"><i class' .
-                    '=\"fa fa-check\"><\/i> Remove ads<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check' .
-                    '\"><\/i> Remove captcha<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> ' .
-                    'Direct<\/li>\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Custom alias<\/li>' .
-                    '\n\t<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Referral earnings<\/li>\n\t' .
-                    '<li class=\"list-group-item\"><i class=\"fa fa-check\"><\/i> Link stats<\/li>\n\t<li class=\"' .
-                    'list-group-item\"><i class=\"fa fa-check\"><\/i> Quick Link<\/li>\n\t<li class=\"list-group-' .
-                    'item\"><i class=\"fa fa-check\"><\/i> Mass shrinker<\/li>\n\t<li class=\"list-group-item\">' .
-                    '<i class=\"fa fa-check\"><\/i> Full page script<\/li>\n\t<li class=\"list-group-item\"><i ' .
-                    'class=\"fa fa-check\"><\/i> Developers API<\/li>\n<\/ul>\n"'),
+                'description' => '',
                 'monthly_price' => 3.99,
                 'yearly_price' => 39.99,
                 'edit_link' => 1,
@@ -235,8 +200,8 @@ class Version360 extends AbstractMigration
                 'api_full' => 1,
                 'api_developer' => 1,
                 'modified' => date("Y-m-d H:i:s"),
-                'created' => date("Y-m-d H:i:s")
-            ]
+                'created' => date("Y-m-d H:i:s"),
+            ],
         ];
         $this->table('plans')
             ->insert($plans)
@@ -248,13 +213,13 @@ class Version360 extends AbstractMigration
                 'limit' => 10,
                 'null' => false,
                 'signed' => false,
-                'after' => 'role'
+                'after' => 'role',
             ])
             ->addColumn('expiration', 'datetime', [
                 'default' => null,
                 'limit' => null,
                 'null' => true,
-                'after' => 'withdrawal_account'
+                'after' => 'withdrawal_account',
             ])
             ->removeIndexByName('idx_status_id')
             ->removeIndexByName('idx_apitoken_status')
@@ -262,9 +227,7 @@ class Version360 extends AbstractMigration
             ->addIndex('api_token', ['unique' => true, 'name' => 'idx_apitoken'])
             ->update();
 
-        $this->table('invoices',[
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('invoices')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -307,12 +270,12 @@ class Version360 extends AbstractMigration
                 'limit' => 255,
                 'null' => false,
             ])
-            ->addColumn('amount', 'float', [
+            ->addColumn('amount', 'decimal', [
                 'default' => 0,
                 'null' => false,
-                'precision' => 50,
+                'precision' => 10,
                 'scale' => 6,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('data', 'text', [
                 'default' => null,
@@ -340,23 +303,23 @@ class Version360 extends AbstractMigration
         $rows = [
             [
                 'name' => 'enable_premium_membership',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'captcha_type',
-                'value' => 'recaptcha'
+                'value' => 'recaptcha',
             ],
             [
                 'name' => 'solvemedia_challenge_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'solvemedia_verification_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'solvemedia_authentication_key',
-                'value' => ''
+                'value' => '',
             ],
         ];
 
@@ -364,9 +327,9 @@ class Version360 extends AbstractMigration
             ->insert($rows)
             ->saveData();
 
-        $interstitial_price = get_option('interstitial_price', []);
-        $banner_price = get_option('banner_price', []);
-        $popup_price = get_option('popup_price', []);
+        $interstitial_price = $this->getOption('interstitial_price', []);
+        $banner_price = $this->getOption('banner_price', []);
+        $popup_price = $this->getOption('popup_price', []);
 
         if (count(array_values($interstitial_price)[0]) == 2) {
             $new_interstitial_price = [];
@@ -374,7 +337,7 @@ class Version360 extends AbstractMigration
                 $new_interstitial_price[$key] = [
                     1 => $value,
                     2 => $value,
-                    3 => $value
+                    3 => $value,
                 ];
             }
             $new_interstitial_price = serialize($new_interstitial_price);
@@ -388,7 +351,7 @@ class Version360 extends AbstractMigration
                 $new_banner_price[$key] = [
                     1 => $value,
                     2 => $value,
-                    3 => $value
+                    3 => $value,
                 ];
             }
             $new_banner_price = serialize($new_banner_price);
@@ -402,13 +365,26 @@ class Version360 extends AbstractMigration
                 $new_popup_price[$key] = [
                     1 => $value,
                     2 => $value,
-                    3 => $value
+                    3 => $value,
                 ];
             }
             $new_popup_price = serialize($new_popup_price);
             $this->execute("UPDATE `{$table_prefix}options` SET `value` = '{$new_popup_price}' " .
                 "WHERE `name` = 'popup_price';");
         }
+    }
+
+    public function getOption($name, $default)
+    {
+        $table_prefix = $this->getAdapter()->getOption('table_prefix');
+
+        $row = $this->fetchRow("SELECT * FROM `{$table_prefix}options` WHERE `name` = '{$name}'");
+
+        if (empty($row)) {
+            return $default;
+        }
+
+        return (is_serialized($row['value'])) ? unserialize($row['value']) : $row['value'];
     }
 
     public function down()
@@ -434,13 +410,13 @@ class Version360 extends AbstractMigration
             "'captcha_type'",
             "'solvemedia_challenge_key'",
             "'solvemedia_verification_key'",
-            "'solvemedia_authentication_key'"
+            "'solvemedia_authentication_key'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
-        $interstitial_price = get_option('interstitial_price', []);
-        $banner_price = get_option('banner_price', []);
-        $popup_price = get_option('popup_price', []);
+        $interstitial_price = $this->getOption('interstitial_price', []);
+        $banner_price = $this->getOption('banner_price', []);
+        $popup_price = $this->getOption('popup_price', []);
 
         if (count(array_values($interstitial_price)[0]) == 3) {
             $new_interstitial_price = [];

@@ -13,27 +13,27 @@ class Version310 extends AbstractMigration
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
         $items = implode(",", [
-            "'mass_shrinker_default_advert'"
+            "'mass_shrinker_default_advert'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
         $rows = [
             [
                 'name' => 'reserved_usernames',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'reserved_aliases',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'currency_position',
-                'value' => 'before'
+                'value' => 'before',
             ],
             [
                 'name' => 'enable_captcha_contact',
-                'value' => 'yes'
-            ]
+                'value' => 'yes',
+            ],
         ];
 
         $this->table('options')
@@ -50,8 +50,8 @@ class Version310 extends AbstractMigration
         $rows = [
             [
                 'name' => 'mass_shrinker_default_advert',
-                'value' => '1'
-            ]
+                'value' => '1',
+            ],
         ];
 
         $this->table('options')
@@ -62,7 +62,7 @@ class Version310 extends AbstractMigration
             "'reserved_usernames'",
             "'reserved_aliases'",
             "'currency_position'",
-            "'enable_captcha_contact'"
+            "'enable_captcha_contact'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
     }

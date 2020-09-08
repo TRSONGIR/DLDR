@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -25,14 +30,14 @@
 
                     ?>
                     <a class="navbar-brand <?= $class ?>"
-                       href="<?= $this->Url->build('/'); ?>"><?= $logo['content'] ?></a>
+                       href="<?= build_main_domain_url('/'); ?>"><?= $logo['content'] ?></a>
                 </div>
             </div>
             <div class="hidden-xs col-sm-6">
-                <?php if (!empty($interstitial_ads)) : ?>
+                <?php if (!empty($interstitial_banner_ad)) : ?>
                     <div class="banner banner-468x60">
                         <div class="banner-inner">
-                            <?= $interstitial_ads; ?>
+                            <?= $interstitial_banner_ad; ?>
                         </div>
                     </div>
                 <?php endif; ?>

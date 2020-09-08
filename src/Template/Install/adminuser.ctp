@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User $user
+ */
 $this->assign('title', __('Step 3: Create Admin User'));
 
 ?>
@@ -15,7 +19,7 @@ $this->assign('title', __('Step 3: Create Admin User'));
     ?>
 
     <?=
-    $this->Form->input('email', [
+    $this->Form->control('email', [
         'label' => __('Email'),
         'class' => 'form-control',
         'type' => 'email',
@@ -25,7 +29,7 @@ $this->assign('title', __('Step 3: Create Admin User'));
     ?>
 
     <?=
-    $this->Form->input('username', [
+    $this->Form->control('username', [
         'label' => __('Username'),
         'class' => 'form-control',
         'type' => 'text',
@@ -35,7 +39,7 @@ $this->assign('title', __('Step 3: Create Admin User'));
     ?>
 
     <?=
-    $this->Form->input('password', [
+    $this->Form->control('password', [
         'label' => __('Password'),
         'class' => 'form-control',
         'type' => 'password',
@@ -45,7 +49,7 @@ $this->assign('title', __('Step 3: Create Admin User'));
     ?>
 
     <?=
-    $this->Form->input('password_compare', [
+    $this->Form->control('password_compare', [
         'label' => __('Confirm Password'),
         'class' => 'form-control',
         'type' => 'password',

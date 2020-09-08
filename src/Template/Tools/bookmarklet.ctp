@@ -1,3 +1,9 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
+?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -64,10 +70,10 @@
     <?php if ($valid_bookmarklet && !isset($short_link)) : ?>
         <?= $this->Form->create($link); ?>
 
-        <?= $this->Form->input('api', ['value' => $this->request->query('api'), 'type' => 'hidden']); ?>
+        <?= $this->Form->control('api', ['value' => $this->request->query('api'), 'type' => 'hidden']); ?>
 
         <?=
-        $this->Form->input('url', [
+        $this->Form->control('url', [
             'label' => __('URL'),
             'value' => $this->request->query('url'),
             'class' => 'form-control input-sm',
@@ -77,7 +83,7 @@
 
         <?php if ($custom_alias) : ?>
             <?=
-            $this->Form->input('alias', [
+            $this->Form->control('alias', [
                 'label' => __('Alias'),
                 'type' => 'text',
                 'required' => false,
@@ -91,7 +97,7 @@
         $ads_options = get_allowed_ads();
 
         if (count($ads_options) > 1) {
-            echo $this->Form->input('ad_type', [
+            echo $this->Form->control('ad_type', [
                 'label' => __('Advertising Type'),
                 'options' => $ads_options,
                 'default' => get_option('member_default_advert', 1),
@@ -107,7 +113,7 @@
         ) : ?>
             <div class="form-group">
                 <?=
-                $this->Form->input('domain', [
+                $this->Form->control('domain', [
                     'label' => __('Domain'),
                     'options' => get_multi_domains_list(),
                     'default' => '',

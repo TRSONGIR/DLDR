@@ -1,8 +1,14 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <?= $this->Html->charset(); ?>
 <title><?= h($this->fetch('title')); ?></title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?= h($this->fetch('description')); ?>">
+<meta name="keywords" content="<?= h(get_option('seo_keywords')); ?>">
 
 <?= $this->Assets->favicon() ?>
 

@@ -9,48 +9,48 @@ class UserMailer extends Mailer
     public function activation($user)
     {
         $this
-            ->profile(get_option('email_method', 'default'))
-            ->from([get_option('email_from', 'no_reply@localhost') => get_option('site_name')])
-            ->to($user->email)
-            ->subject(__("{0}: New Account", h(get_option('site_name'))))
-            ->viewVars([
+            ->setProfile(get_option('email_method', 'default'))
+            ->setFrom([get_option('email_from', 'no_reply@localhost') => get_option('email_from_name')])
+            ->setTo($user->email)
+            ->setSubject(__("New Account"))
+            ->setViewVars([
                 'username' => $user->username,
-                'activation_key' => $user->activation_key
+                'activation_key' => $user->activation_key,
             ])
-            ->template('register')// By default template with same name as method name is used.
-            ->layout('app')
-            ->emailFormat('html');
+            ->setTemplate('register')// By default template with same name as method name is used.
+            ->setLayout('app')
+            ->setEmailFormat('both');
     }
 
     public function changeEmail($user)
     {
         $this
-            ->profile(get_option('email_method', 'default'))
-            ->from([get_option('email_from', 'no_reply@localhost') => get_option('site_name')])
-            ->to($user->temp_email)
-            ->subject(__("{0}: Change Email", h(get_option('site_name'))))
-            ->viewVars([
+            ->setProfile(get_option('email_method', 'default'))
+            ->setFrom([get_option('email_from', 'no_reply@localhost') => get_option('email_from_name')])
+            ->setTo($user->temp_email)
+            ->setSubject(__("Change Email"))
+            ->setViewVars([
                 'username' => $user->username,
-                'activation_key' => $user->activation_key
+                'activation_key' => $user->activation_key,
             ])
-            ->template('change_email')// By default template with same name as method name is used.
-            ->layout('app')
-            ->emailFormat('html');
+            ->setTemplate('change_email')// By default template with same name as method name is used.
+            ->setLayout('app')
+            ->setEmailFormat('both');
     }
 
     public function forgotPassword($user)
     {
         $this
-            ->profile(get_option('email_method', 'default'))
-            ->from([get_option('email_from', 'no_reply@localhost') => get_option('site_name')])
-            ->to($user->email)
-            ->subject(__("{0}: Password Reset", h(get_option('site_name'))))
-            ->viewVars([
+            ->setProfile(get_option('email_method', 'default'))
+            ->setFrom([get_option('email_from', 'no_reply@localhost') => get_option('email_from_name')])
+            ->setTo($user->email)
+            ->setSubject(__("Password Reset"))
+            ->setViewVars([
                 'username' => $user->username,
-                'activation_key' => $user->activation_key
+                'activation_key' => $user->activation_key,
             ])
-            ->template('reset_password')// By default template with same name as method name is used.
-            ->layout('app')
-            ->emailFormat('html');
+            ->setTemplate('reset_password')// By default template with same name as method name is used.
+            ->setLayout('app')
+            ->setEmailFormat('both');
     }
 }

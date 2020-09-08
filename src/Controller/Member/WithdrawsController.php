@@ -2,10 +2,15 @@
 
 namespace App\Controller\Member;
 
-use App\Controller\Member\AppMemberController;
+use Cake\Mailer\MailerAwareTrait;
 
+/**
+ * @property \App\Model\Table\WithdrawsTable $Withdraws
+ */
 class WithdrawsController extends AppMemberController
 {
+    use MailerAwareTrait;
+
     public function index()
     {
         $query = $this->Withdraws->find()
@@ -38,7 +43,7 @@ class WithdrawsController extends AppMemberController
 
     public function request()
     {
-        $this->request->allowMethod(['post', 'put']);
+        $this->getRequest()->allowMethod(['post', 'put']);
 
         $user = $this->Withdraws->Users->get($this->Auth->user('id'));
 
@@ -47,20 +52,28 @@ class WithdrawsController extends AppMemberController
 
         $withdraw->user_id = $this->Auth->user('id');
         $withdraw->status = 2;
-        $withdraw->publisher_earnings = $user->publisher_earnings;
-        $withdraw->referral_earnings = $user->referral_earnings;
+        $withdraw->publisher_earnings = price_database_format($user->publisher_earnings);
+        $withdraw->referral_earnings = price_database_format($user->referral_earnings);
 
         $method = $user->withdrawal_method;
         $account = $user->withdrawal_account;
 
         if ($method !== 'wallet' && (empty($method) || empty($account))) {
             $this->Flash->error(__('You should fill your withdrawal info from your profile settings.'));
+
             return $this->redirect(['action' => 'index']);
         }
 
-        $data['amount'] = $user->publisher_earnings + $user->referral_earnings;
+        $data['amount'] = price_database_format($user->publisher_earnings + $user->referral_earnings);
 
-        $withdrawal_methods = array_column(get_withdrawal_methods(), 'amount', 'id');
+        $withdrawal_methods = array_column_polyfill(get_withdrawal_methods(), 'amount', 'id');
+
+        if (!in_array($user->withdrawal_method, array_keys($withdrawal_methods))) {
+            $this->Flash->error(__('Invalid withdrawal method.'));
+
+            return $this->redirect(['action' => 'index']);
+        }
+
         $minimum_withdrawal_amount = $withdrawal_methods[$user->withdrawal_method];
 
         if ($data['amount'] < $minimum_withdrawal_amount) {
@@ -68,6 +81,7 @@ class WithdrawsController extends AppMemberController
                 'Withdraw amount should be equal or greater than {0}.',
                 display_price_currency($minimum_withdrawal_amount)
             ));
+
             return $this->redirect(['action' => 'index']);
         }
 
@@ -81,10 +95,15 @@ class WithdrawsController extends AppMemberController
             $user->referral_earnings = 0;
             $this->Withdraws->Users->save($user);
 
+            if ((bool)get_option('alert_admin_new_withdrawal', 1)) {
+                $this->getMailer('Notification')->send('newWithdrawal', [$withdraw, $user]);
+            }
+
             $this->Flash->success(__('Your withdraw has been request and under review.'));
         } else {
             $this->Flash->error(__('Unable to request the withdraw.'));
         }
+
         return $this->redirect(['action' => 'index']);
     }
 }

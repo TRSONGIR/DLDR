@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
-use App\Controller\FrontController;
 use Cake\Event\Event;
 
+/**
+ * @property \App\Model\Table\UsersTable $Users
+ */
 class UsersController extends FrontController
 {
     public function initialize()

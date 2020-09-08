@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign $campaign
+ */
 $this->assign('title', __('Campaign #{0}', $campaign->id));
 $this->assign('description', '');
 $this->assign('content_title', __('Campaign #{0}', $campaign->id));

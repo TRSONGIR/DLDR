@@ -17,7 +17,8 @@ class ContactForm extends Form
             ->addField('name', 'string')
             ->addField('subject', 'string')
             ->addField('email', ['type' => 'string'])
-            ->addField('message', ['type' => 'text']);
+            ->addField('message', ['type' => 'text'])
+            ->addField('accept', ['type' => 'checkbox']);
     }
 
     protected function _buildValidator(Validator $validator)
@@ -29,24 +30,26 @@ class ContactForm extends Form
                 'message' => __('A valid email address is required')
             ])
             ->notEmpty('subject', __('A subject is required'))
-            ->notEmpty('message', __('Message body is required'));
+            ->notEmpty('message', __('Message body is required'))
+            ->equals('accept', 1, __('You must accept our Privacy Policy before contacting us.'));
     }
 
     protected function _execute(array $data)
     {
         $email = new Email();
         $email
-            ->profile(get_option('email_method', 'default'))
-            ->replyTo($data['email'], $data['name'])
-            ->to(get_option('admin_email'))
-            ->subject(h(get_option('site_name')) . ': ' . h($data['subject']))
-            ->viewVars([
+            ->setProfile(get_option('email_method', 'default'))
+            ->setReplyTo($data['email'], $data['name'])
+            ->setTo(get_option('admin_email'))
+            ->setSubject(h(get_option('site_name')) . ': ' . h($data['subject']))
+            ->setViewVars([
                 'name' => $data['name'],
                 'message' => $data['message']
             ])
-            ->template('contact')// By default template with same name as method name is used.
-            ->emailFormat('html')
+            ->setTemplate('contact')// By default template with same name as method name is used.
+            ->setEmailFormat('html')
             ->send();
+
         return true;
     }
 }

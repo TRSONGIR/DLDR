@@ -2,57 +2,44 @@
 
 namespace App\Controller\Member;
 
-use App\Controller\Member\AppMemberController;
+use Cake\I18n\Time;
 
+/**
+ * @property \App\Model\Table\LinksTable $Links
+ * @property \Cake\ORM\Table $Tools
+ */
 class ToolsController extends AppMemberController
 {
     public function quick()
     {
-        $this->loadModel('Users');
+        if (!$this->logged_user_plan->api_quick) {
+            $this->Flash->error(__('You must upgrade your plan so you can use this tool.'));
 
-        $user = $this->Users->find()->contain('Plans')->where(['Users.id' => $this->Auth->user('id')])->first();
-        $this->set('user', $user);
-
-        $notice = '';
-        if ((bool)get_option('enable_premium_membership')) {
-            if (!get_user_plan($user)->api_quick) {
-                $notice = __('You must upgrade your plan so you can use this tool.');
-            }
+            return $this->redirect(['_name' => 'member_dashboard']);
         }
-        $this->set('notice', $notice);
     }
 
     public function massShrinker()
     {
-        $this->loadModel('Users');
+        if (!$this->logged_user_plan->api_mass) {
+            $this->Flash->error(__('You must upgrade your plan so you can use this tool.'));
 
-        $user = $this->Users->find()->contain('Plans')->where(['Users.id' => $this->Auth->user('id')])->first();
-        $this->set('user', $user);
-
-        $notice = '';
-        if ((bool)get_option('enable_premium_membership')) {
-            if (!get_user_plan($user)->api_mass) {
-                $notice = __('You must upgrade your plan so you can use this tool.');
-            }
+            return $this->redirect(['_name' => 'member_dashboard']);
         }
-        $this->set('notice', $notice);
 
-        $link = $this->Users->Links->newEntity();
-        if ($this->request->is('post')) {
-            if ($notice) {
-                $this->Flash->error($notice);
-                return $this->redirect(['action' => 'massShrinker']);
-            }
+        $this->loadModel('Links');
 
-            $urls = explode("\n", str_replace("\r", "\n", $this->request->data['urls']));
+        $link = $this->Links->newEntity();
+        if ($this->getRequest()->is('post')) {
+            $urls = explode("\n", str_replace("\r", "\n", $this->getRequest()->data['urls']));
             $urls = array_unique(array_filter($urls));
             $urls = array_slice($urls, 0, get_option('mass_shrinker_limit', 20));
             $urls = array_map('trim', $urls);
 
             $ad_type = get_option('member_default_advert', 1);
-            if (isset($this->request->data['ad_type'])) {
-                if (array_key_exists($this->request->data['ad_type'], get_allowed_ads())) {
-                    $ad_type = $this->request->data['ad_type'];
+            if (isset($this->getRequest()->data['ad_type'])) {
+                if (array_key_exists($this->getRequest()->data['ad_type'], get_allowed_ads())) {
+                    $ad_type = $this->getRequest()->data['ad_type'];
                 }
             }
 
@@ -66,54 +53,6 @@ class ToolsController extends AppMemberController
         $this->set('link', $link);
     }
 
-    public function api()
-    {
-        $this->loadModel('Users');
-
-        $user = $this->Users->find()->contain('Plans')->where(['Users.id' => $this->Auth->user('id')])->first();
-        $this->set('user', $user);
-
-        $notice = '';
-        if ((bool)get_option('enable_premium_membership')) {
-            if (!get_user_plan($user)->api_developer) {
-                $notice = __('You must upgrade your plan so you can use this tool.');
-            }
-        }
-        $this->set('notice', $notice);
-    }
-
-    public function full()
-    {
-        $this->loadModel('Users');
-
-        $user = $this->Users->find()->contain('Plans')->where(['Users.id' => $this->Auth->user('id')])->first();
-        $this->set('user', $user);
-
-        $notice = '';
-        if ((bool)get_option('enable_premium_membership')) {
-            if (!get_user_plan($user)->api_full) {
-                $notice = __('You must upgrade your plan so you can use this tool.');
-            }
-        }
-        $this->set('notice', $notice);
-    }
-
-    public function bookmarklet()
-    {
-        $this->loadModel('Users');
-
-        $user = $this->Users->find()->contain('Plans')->where(['Users.id' => $this->Auth->user('id')])->first();
-        $this->set('user', $user);
-
-        $notice = '';
-        if ((bool)get_option('enable_premium_membership')) {
-            if (!get_user_plan($user)->bookmarklet) {
-                $notice = __('You must upgrade your plan so you can use this tool.');
-            }
-        }
-        $this->set('notice', $notice);
-    }
-
     protected function addMassShrinker($url, $ad_type = 1)
     {
         $this->loadModel('Links');
@@ -121,21 +60,75 @@ class ToolsController extends AppMemberController
         $url = parse_url($url, PHP_URL_SCHEME) === null ? 'http://' . $url : $url;
 
         $link = $this->Links->find()->where([
+            'url_hash' => sha1($url),
             'user_id' => $this->Auth->user('id'),
             'status' => 1,
             'ad_type' => $ad_type,
-            'url' => $url
+            'url' => $url,
         ])->first();
 
         if ($link) {
             return ['url' => $url, 'short' => $link->alias, 'domain' => $link->domain];
         }
 
+        /**
+         * @var \App\Model\Entity\Plan $user_plan
+         */
+        $user_plan = $this->logged_user_plan;
+
+        if ($user_plan->url_daily_limit) {
+            $start = Time::now()->startOfDay()->format('Y-m-d H:i:s');
+            $end = Time::now()->endOfDay()->format('Y-m-d H:i:s');
+
+            $links_daily_count = $this->Links->find()
+                ->where([
+                    'user_id' => $this->Auth->user('id'),
+                    "created BETWEEN :date1 AND :date2",
+                ])
+                ->bind(':date1', $start, 'datetime')
+                ->bind(':date2', $end, 'datetime')
+                ->count();
+
+            if ($links_daily_count >= $user_plan->url_daily_limit) {
+                return [
+                    'url' => $url,
+                    'short' => 'error',
+                    'domain' => '',
+                    'message' => __('Your account has exceeded its daily short links limit.'),
+                ];
+            }
+        }
+
+        if ($user_plan->url_monthly_limit) {
+            $start = Time::now()->startOfMonth()->format('Y-m-d H:i:s');
+            $end = Time::now()->endOfMonth()->format('Y-m-d H:i:s');
+
+            $links_monthly_count = $this->Links->find()
+                ->where([
+                    'user_id' => $this->Auth->user('id'),
+                    "created BETWEEN :date1 AND :date2",
+                ])
+                ->bind(':date1', $start, 'datetime')
+                ->bind(':date2', $end, 'datetime')
+                ->count();
+
+            if ($links_monthly_count >= $user_plan->url_monthly_limit) {
+                return [
+                    'url' => $url,
+                    'short' => 'error',
+                    'domain' => '',
+                    'message' => __('Your account has exceeded its monthly short links limit.'),
+                ];
+            }
+        }
+
+
         $link = $this->Links->newEntity();
         $data = [];
 
         $data['user_id'] = $this->Auth->user('id');
         $data['url'] = $url;
+        $data['url_hash'] = sha1($url);
         $data['alias'] = $this->Links->geturl();
         $data['ad_type'] = $ad_type;
         $link->status = 1;
@@ -145,7 +138,7 @@ class ToolsController extends AppMemberController
         $linkMeta = [
             'title' => '',
             'description' => '',
-            'image' => ''
+            'image' => '',
         ];
 
         if (get_option('disable_meta_api') === 'no') {
@@ -160,6 +153,34 @@ class ToolsController extends AppMemberController
         if ($this->Links->save($link)) {
             return ['url' => $url, 'short' => $link->alias, 'domain' => $link->domain];
         }
+
         return ['url' => $url, 'short' => 'error', 'domain' => ''];
+    }
+
+    public function api()
+    {
+        if (!$this->logged_user_plan->api_developer) {
+            $this->Flash->error(__('You must upgrade your plan so you can use this tool.'));
+
+            return $this->redirect(['_name' => 'member_dashboard']);
+        }
+    }
+
+    public function full()
+    {
+        if (!$this->logged_user_plan->api_full) {
+            $this->Flash->error(__('You must upgrade your plan so you can use this tool.'));
+
+            return $this->redirect(['_name' => 'member_dashboard']);
+        }
+    }
+
+    public function bookmarklet()
+    {
+        if (!$this->logged_user_plan->bookmarklet) {
+            $this->Flash->error(__('You must upgrade your plan so you can use this tool.'));
+
+            return $this->redirect(['_name' => 'member_dashboard']);
+        }
     }
 }

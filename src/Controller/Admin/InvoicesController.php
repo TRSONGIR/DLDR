@@ -2,10 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
-use Cake\Routing\Router;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\InvoicesTable $Invoices
+ */
 class InvoicesController extends AppAdminController
 {
     public function index()
@@ -31,7 +32,7 @@ class InvoicesController extends AppAdminController
 
     public function markPaid($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->getRequest()->allowMethod(['post', 'delete']);
 
         $invoice = $this->Invoices->findById($id)->where(['status <>' => 1])->first();
 
@@ -48,12 +49,13 @@ class InvoicesController extends AppAdminController
 
     public function delete($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->getRequest()->allowMethod(['post', 'delete']);
 
         $invoice = $this->Invoices->findById($id)->first();
 
         if ($this->Invoices->delete($invoice)) {
             $this->Flash->success(__('The invoice with id: {0} has been deleted.', $invoice->id));
+
             return $this->redirect(['action' => 'index']);
         }
     }

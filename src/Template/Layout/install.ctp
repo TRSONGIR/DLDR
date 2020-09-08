@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,15 +53,14 @@
         <hr>
 
         <div class="text-center">
-            <?= __('Copyright &copy;') ?> <?php echo date('Y'); ?> | <?= __('Developed by') ?> <a
-                    href="http://www.mightyscripts.com" target="_blank">MightyScripts</a>
+            <?= __('Copyright &copy;') ?> <?php echo date('Y'); ?>
         </div>
     </div>
     <!-- /.login-box-body -->
 </div>
 <!-- /.login-box -->
 
-<?= $this->Html->script('/js/ads.js'); ?>
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 <?= $this->Html->script('/vendor/jquery.min.js'); ?>
 <?= $this->Html->script('/vendor/bootstrap/js/bootstrap.min.js'); ?>
 <?= $this->Html->script('/vendor/clipboard.min.js'); ?>

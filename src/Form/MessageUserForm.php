@@ -42,8 +42,9 @@ class MessageUserForm extends Form
                 'message' => $data['message']
             ])
             ->template('message_user')// By default template with same name as method name is used.
-            ->emailFormat('html')
+            ->emailFormat('both')
             ->send();
+
         return true;
     }
 }

@@ -5,36 +5,58 @@ namespace App\Model\Table;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
+/**
+ * @property \App\Model\Table\UsersTable&\Cake\ORM\Association\BelongsTo $Users
+ * @property \App\Model\Table\CampaignItemsTable&\Cake\ORM\Association\HasMany $CampaignItems
+ * @property \App\Model\Table\InvoicesTable&\Cake\ORM\Association\HasOne $Invoices
+ * @property \App\Model\Table\StatisticsTable&\Cake\ORM\Association\HasMany $Statistics
+ *
+ * @method \Cake\ORM\Query findById($id)
+ * @method \App\Model\Entity\Campaign get($primaryKey, $options = [])
+ * @method \App\Model\Entity\Campaign newEntity($data = null, array $options = [])
+ * @method \App\Model\Entity\Campaign[] newEntities(array $data, array $options = [])
+ * @method \App\Model\Entity\Campaign|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \App\Model\Entity\Campaign saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \App\Model\Entity\Campaign patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
+ * @method \App\Model\Entity\Campaign[] patchEntities($entities, array $data, array $options = [])
+ * @method \App\Model\Entity\Campaign findOrCreate($search, callable $callback = null, $options = [])
+ * @mixin \Cake\ORM\Behavior\TimestampBehavior
+ */
 class CampaignsTable extends Table
 {
     public function initialize(array $config)
     {
         $this->belongsTo('Users');
+
         $this->hasMany('CampaignItems', [
             'dependent' => true,
-            'cascadeCallbacks' => true
+            'cascadeCallbacks' => true,
         ]);
+
+        $this->hasMany('Statistics');
+
         $this->hasOne('Invoices', [
             'foreignKey' => 'rel_id',
-            'conditions' => ['type' => 2]
+            'conditions' => ['type' => 2],
         ]);
+
         $this->addBehavior('Timestamp');
     }
 
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->notEmpty('user_id', __('This value should not be blank.'))
+            ->notBlank('user_id', __('This value should not be blank.'))
             ->add('status', 'inList', [
                 'rule' => ['inList', [1, 2, 3, 4, 5, 6, 7, 8]],
-                'message' => __('Choose a valid value.')
+                'message' => __('Choose a valid value.'),
             ])
-            ->notEmpty('name', __('This value should not be blank.'))
-            ->notEmpty('website_title', __('This value should not be blank.'))
-            ->notEmpty('website_url', __('This value should not be blank.'))
+            ->notBlank('name', __('This value should not be blank.'))
+            ->notBlank('website_title', __('This value should not be blank.'))
+            ->notBlank('website_url', __('This value should not be blank.'))
             ->add('website_url', 'url', [
                 'rule' => 'url',
-                'message' => __('URL must be valid.')
+                'message' => __('URL must be valid.'),
             ])
             ->add('website_url', 'checkProtocol', [
                 'rule' => function ($value, $context) {
@@ -43,9 +65,10 @@ class CampaignsTable extends Table
                     if (in_array($scheme, ['http', 'https'])) {
                         return true;
                     }
+
                     return false;
                 },
-                'message' => __('http and https urls only allowed.')
+                'message' => __('http and https urls only allowed.'),
             ])
             /*
             ->add('website_url', 'checkXFrameOptions', [
@@ -59,25 +82,26 @@ class CampaignsTable extends Table
                 'message' => __('This website URL refused to be used in interstitial ads.')
             ])
             */
-            ->notEmpty('banner_name', __('This value should not be blank.'))
+            ->notBlank('banner_name', __('This value should not be blank.'))
             ->add('banner_size', 'inList', [
                 'rule' => ['inList', ['728x90', '468x60', '336x280']],
-                'message' => __('Choose a valid value.')
+                'message' => __('Choose a valid value.'),
             ])
-            ->notEmpty('banner_code', __('This value should not be blank.'))
-            ->notEmpty('price', __('You must have a purchase.'))
+            ->notBlank('banner_code', __('This value should not be blank.'))
+            ->notBlank('price', __('You must have a purchase.'))
             ->add('traffic_source', 'inList', [
                 'rule' => ['inList', [1, 2, 3]],
-                'message' => __('Choose a valid value.')
+                'message' => __('Choose a valid value.'),
             ])
             ->add('website_terms', 'termsAccept', [
                 'rule' => function ($value, $context) {
                     if ($value == 1) {
                         return true;
                     }
+
                     return false;
                 },
-                'message' => __('You must accept our terms and conditions.')
+                'message' => __('You must accept our terms and conditions.'),
             ])
             ->add('payment_method', 'inList', [
                 'rule' => [
@@ -90,11 +114,10 @@ class CampaignsTable extends Table
                         'coinbase',
                         'webmoney',
                         'banktransfer',
-						'zarinpal',
-                        'wallet'
-                    ]
+                        'wallet',
+                    ],
                 ],
-                'message' => __('Choose a valid value.')
+                'message' => __('Choose a valid value.'),
             ]);
 
         return $validator;

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Contact Us'));
 $this->assign('description', '');
 $this->assign('content_title', __('Contact Us'));
@@ -16,7 +19,7 @@ $this->assign('content_title', __('Contact Us'));
     </div>
 </header>
 
-<section id="services">
+<section id="contact">
     <div class="container">
         <?= $this->element('contact'); ?>
     </div>

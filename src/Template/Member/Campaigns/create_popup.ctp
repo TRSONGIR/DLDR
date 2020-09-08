@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign $campaign
+ */
 $this->assign('title', __('Create Popup Campaign'));
 $this->assign('description', '');
 $this->assign('content_title', __('Create Popup Campaign'));
@@ -7,12 +11,12 @@ $this->assign('content_title', __('Create Popup Campaign'));
 <div class="box box-primary">
     <div class="box-body">
 
-        <?php if (isset($this->request->query['traffic_source']) &&
-            in_array($this->request->query['traffic_source'], [1, 2, 3])
+        <?php if ($this->request->getQuery('traffic_source') &&
+            in_array($this->request->getQuery('traffic_source'), [1, 2, 3])
         ) : ?>
 
             <?php
-            $traffic_source = $this->request->query['traffic_source'];
+            $traffic_source = $this->request->getQuery('traffic_source');
             $popup_price = get_option('popup_price');
             $countries = get_countries(true);
             $i = 0;
@@ -39,7 +43,7 @@ $this->assign('content_title', __('Create Popup Campaign'));
             ?>
 
             <?=
-            $this->Form->input('name', [
+            $this->Form->control('name', [
                 'label' => __('Campaign Name'),
                 'class' => 'form-control'
             ]);
@@ -48,14 +52,14 @@ $this->assign('content_title', __('Create Popup Campaign'));
             <legend><?= __('Website Details') ?></legend>
 
             <?=
-            $this->Form->input('website_title', [
+            $this->Form->control('website_title', [
                 'label' => __('Title'),
                 'class' => 'form-control'
             ]);
             ?>
 
             <?=
-            $this->Form->input('website_url', [
+            $this->Form->control('website_url', [
                 'label' => __('URL'),
                 'class' => 'form-control',
                 'type' => 'url'
@@ -89,7 +93,7 @@ $this->assign('content_title', __('Create Popup Campaign'));
                             <?= $this->Form->hidden("campaign_items.$i.country", ['value' => $key]); ?>
 
                             <?=
-                            $this->Form->input("campaign_items.$i.purchase", [
+                            $this->Form->control("campaign_items.$i.purchase", [
                                 'label' => false,
                                 'class' => 'form-control',
                                 'type' => 'number',
@@ -114,7 +118,7 @@ $this->assign('content_title', __('Create Popup Campaign'));
             </label>
 
             <div class="text-center">
-                <<p class="text-success" style="font-size: 23px;">
+                <p class="text-success" style="font-size: 23px;">
                     <?= __(
                         "You have ordered {0} visitors for a total of {1}",
                         "<span id='total-visitors'>0</span>",
@@ -131,7 +135,7 @@ $this->assign('content_title', __('Create Popup Campaign'));
             <?= $this->Form->create(null, ['type' => 'get']); ?>
 
             <?=
-            $this->Form->input('traffic_source', [
+            $this->Form->control('traffic_source', [
                 'label' => __('Traffic Sources/Devices'),
                 'options' => [
                     '1' => __('Desktop, Mobile and Tablet'),

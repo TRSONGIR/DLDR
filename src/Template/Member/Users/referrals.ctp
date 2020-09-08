@@ -1,4 +1,9 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
+<?php
 $this->assign('title', __('Referrals'));
 $this->assign('description', '');
 $this->assign('content_title', __('Referrals'));
@@ -15,7 +20,7 @@ $this->assign('content_title', __('Referrals'));
             ) ?>
         </p>
 
-        <?php $ref = $this->Url->build('/', true) . 'ref/' . $this->request->session()->read('Auth.User.username'); ?>
+        <?php $ref = $this->Url->build('/', true) . 'ref/' . $logged_user->username; ?>
 
         <pre><?= $ref ?></pre>
 
@@ -30,60 +35,44 @@ $this->assign('content_title', __('Referrals'));
     </div><!-- /.box-header -->
     <div class="box-body no-padding">
 
-        <table class="table table-hover table-striped">
-            <tr>
-                <th><?= __('Username'); ?></th>
-                <th><?= __('Date'); ?></th>
-            </tr>
-            <!-- Here is where we loop through our $posts array, printing out post info -->
-            <?php foreach ($referrals as $referral) : ?>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
                 <tr>
-                    <td><?= h($referral->username); ?></td>
-                    <td><?= display_date_timezone($referral->created) ?></td>
+                    <th><?= __('Username'); ?></th>
+                    <th><?= __('Date'); ?></th>
                 </tr>
-            <?php endforeach; ?>
-            <?php unset($referral); ?>
-        </table>
+                <!-- Here is where we loop through our $posts array, printing out post info -->
+                <?php foreach ($referrals as $referral) : ?>
+                    <tr>
+                        <td><?= h($referral->username); ?></td>
+                        <td><?= display_date_timezone($referral->created) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php unset($referral); ?>
+            </table>
+        </div>
 
     </div><!-- /.box-body -->
 </div>
 
 <ul class="pagination">
-    <!-- Shows the previous link -->
     <?php
+    $this->Paginator->setTemplates([
+        'ellipsis' => '<li><a href="javascript: void(0)">...</a></li>',
+    ]);
+
     if ($this->Paginator->hasPrev()) {
-        echo $this->Paginator->prev(
-            '«',
-            array('tag' => 'li'),
-            null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a')
-        );
+        echo $this->Paginator->prev('«');
     }
-    ?>
 
-    <!-- Shows the page numbers -->
-    <?php //echo $this->Paginator->numbers();    ?>
-    <?php
-    echo $this->Paginator->numbers(array(
+    echo $this->Paginator->numbers([
         'modulus' => 4,
-        'separator' => '',
-        'ellipsis' => '<li><a href="javascript: return false;">...</a></li>',
-        'tag' => 'li',
-        'currentTag' => 'a',
         'first' => 2,
-        'last' => 2
-    ));
-    ?>
+        'last' => 2,
+    ]);
 
-    <!-- Shows the next link -->
-    <?php
     if ($this->Paginator->hasNext()) {
-        echo $this->Paginator->next(
-            '»',
-            array('tag' => 'li'),
-            null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a')
-        );
+        echo $this->Paginator->next('»');
     }
     ?>
 </ul>

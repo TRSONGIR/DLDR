@@ -14,6 +14,7 @@ class Version451 extends AbstractMigration
 
         $this->execute("UPDATE `{$table_prefix}users` SET `plan_id`=1 WHERE `plan_id`=0;");
     }
+
     public function down()
     {
         $this->execute("SET SESSION sql_mode = ''");

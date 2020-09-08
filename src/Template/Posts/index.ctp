@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Post[]|\Cake\Collection\CollectionInterface $posts
+ */
 $this->assign('title', __('Blog'));
 $this->assign('description', __('Discover all the latest news and tips about our service.'));
 $this->assign('content_title', __('Blog'));

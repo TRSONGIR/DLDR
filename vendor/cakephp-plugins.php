@@ -2,7 +2,7 @@
 $baseDir = dirname(dirname(__FILE__));
 return [
     'plugins' => [
-        'ADmad/HybridAuth' => $baseDir . '/vendor/admad/cakephp-hybridauth/',
+        'ADmad/SocialAuth' => $baseDir . '/vendor/admad/cakephp-social-auth/',
         'AdminlteAdminTheme' => $baseDir . '/plugins/AdminlteAdminTheme/',
         'AdminlteMemberTheme' => $baseDir . '/plugins/AdminlteMemberTheme/',
         'ClassicTheme' => $baseDir . '/plugins/ClassicTheme/',

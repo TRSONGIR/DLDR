@@ -2,10 +2,13 @@
 
 namespace App\Controller\Member;
 
-use App\Controller\Member\AppMemberController;
 use Cake\Routing\Router;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\CampaignsTable $Campaigns
+ * @property \App\Model\Table\InvoicesTable $Invoices
+ */
 class InvoicesController extends AppMemberController
 {
     public function index()
@@ -33,31 +36,39 @@ class InvoicesController extends AppMemberController
     {
         $this->autoRender = false;
 
-        $this->response->type('json');
+        $this->setResponse($this->getResponse()->withType('json'));
 
-        if (!$this->request->is('ajax')) {
+        if (!$this->getRequest()->is('ajax')) {
             $content = [
                 'status' => 'error',
                 'message' => __('Bad Request.'),
-                'form' => ''
+                'form' => '',
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
+        /**
+         * @var \App\Model\Entity\User $user
+         */
         $user = $this->Invoices->Users->find()->contain(['Plans'])
             ->where(['Users.id' => $this->Auth->user('id')])->first();
 
-        $invoice = $this->Invoices->findById($this->request->data['id'])->first();
+        /**
+         * @var \App\Model\Entity\Invoice $invoice
+         */
+        $invoice = $this->Invoices->findById($this->getRequest()->getData('id'))->first();
 
-        if ('wallet' == $this->request->data['payment_method']) {
+        if ('wallet' == $this->getRequest()->getData('payment_method')) {
             if ($invoice->amount > $user->wallet_money) {
                 $content = [
                     'status' => 'error',
-                    'message' => __("You don't have enough money in your wallet.")
+                    'message' => __("You don't have enough money in your wallet."),
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $invoice->payment_method = 'wallet';
@@ -86,6 +97,7 @@ class InvoicesController extends AppMemberController
 
             if ($invoice->type === 2) {
                 $this->loadModel('Campaigns');
+                /** @var \App\Model\Entity\Campaign $campaign */
                 $campaign = $this->Campaigns->findById($invoice->rel_id)
                     ->where(['user_id' => $this->Auth->user('id')])
                     ->first();
@@ -94,10 +106,11 @@ class InvoicesController extends AppMemberController
                     $content = [
                         'status' => 'error',
                         'message' => __('Not found campaign.'),
-                        'form' => ''
+                        'form' => '',
                     ];
-                    $this->response->body(json_encode($content));
-                    return $this->response;
+                    $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                    return $this->getResponse();
                 }
 
                 $campaign->payment_method = 'wallet';
@@ -109,13 +122,14 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'offline',
-                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true)
+                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('paypal' == $this->request->data['payment_method']) {
+        if ('paypal' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $notify_url = Router::url('/payment/ipn?payment_method=paypal', true);
 
@@ -133,7 +147,6 @@ class InvoicesController extends AppMemberController
                 'cancel_return' => $return_url,
                 'custom' => $invoice->id,
                 'no_shipping' => 1,
-                'lc' => 'US'
             ];
 
             $url = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
@@ -151,61 +164,14 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
-        }
-		
-		if ('zarinpal' == $this->request->data['payment_method']) {
-            
-            $return_url = Router::url('/payment/ipn?payment_method=zarinpal', true);
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
 
-            $paymentData = [
-                'MerchantID' => get_option('zarinpal_marchent'),
-				'CallbackURL' => $return_url,
-				'Amount' => $invoice->amount,
-                'Email' => $this->Auth->user('email'),
-                'Description' => __("Invoice").$invoice->id,
-				'Mobile' => '',
-            ];
-			$sandbox = 'www';
-            if (get_option('zarinpal_sandbox', 'no') == 'yes') {
-                $sandbox = 'sandbox';
-            }
-			
-			$client = new \SoapClient('https://'.$sandbox.'.zarinpal.com/pg/services/WebGate/wsdl', ['encoding' => 'UTF-8']);
-			$result = $client->PaymentRequest($paymentData);
-            $url = 'https://'.$sandbox.'.zarinpal.com/pg/StartPay/';
-			
-			if ($result->Status == 100) {
-				
-				$url = $url.$result->Authority;
-				$session = $this->request->session();
-				$session->write('inv_id', $invoice->id);
-				$session->write('author', $result->Authority);
-				$invoice->payment_method = 'zarinpal';
-				$this->Invoices->save($invoice);
-				
-				$content = [
-					'status' => 'success',
-					'message' => '',
-					'type' => 'url',
-					'url' => $url
-				];
-			}else{
-				$content = [
-					'status' => 'error',
-					'message' => $result->Status
-				];
-			}
-			
-            $this->response->body(json_encode($content));
-            return $this->response;
-            
+            return $this->getResponse();
         }
 
-        if ('payza' == $this->request->data['payment_method']) {
+        if ('payza' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $alert_url = Router::url('/payment/ipn?payment_method=payza', true);
 
@@ -224,7 +190,7 @@ class InvoicesController extends AppMemberController
                 'ap_ipnversion' => 2,
             ];
 
-            $url = 'https://secure.payza.com/checkout';
+            $url = 'https://secure.payza.eu/checkout';
 
             $form = $this->redirect_post($url, $paymentData);
 
@@ -235,13 +201,14 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('skrill' == $this->request->data['payment_method']) {
+        if ('skrill' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $status_url = Router::url('/payment/ipn?payment_method=skrill', true);
 
@@ -255,7 +222,7 @@ class InvoicesController extends AppMemberController
                 'detail1_text' => '#' . $invoice->id,
                 'transaction_id' => $invoice->id,
                 'return_url' => $return_url,
-                'cancel_url' => $return_url
+                'cancel_url' => $return_url,
             ];
 
             $url = 'https://pay.skrill.com';
@@ -269,28 +236,29 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('stripe' == $this->request->data['payment_method']) {
+        if ('stripe' === $this->getRequest()->getData('payment_method')) {
             // https://stripe.com/docs/api#create_charge
 
             $data = [
-                'card[number]' => $this->request->data['stripe_cc'], //4242424242424242,
-                'card[exp_month]' => $this->request->data['stripe_exp_month'], //12,
-                'card[exp_year]' => $this->request->data['stripe_exp_year'], //2018,
-                'card[cvc]' => $this->request->data['stripe_cvc'], //123
+                'card[number]' => $this->getRequest()->getData('stripe_cc'), //4242424242424242,
+                'card[exp_month]' => $this->getRequest()->getData('stripe_exp_month'), //12,
+                'card[exp_year]' => $this->getRequest()->getData('stripe_exp_year'), //2018,
+                'card[cvc]' => $this->getRequest()->getData('stripe_cvc'), //123
             ];
 
             $headers = [
-                "Content-Type: application/x-www-form-urlencoded"
+                "Content-Type: application/x-www-form-urlencoded",
             ];
 
             $options = [
-                CURLOPT_USERPWD => get_option('stripe_secret_key') . ":"
+                CURLOPT_USERPWD => get_option('stripe_secret_key') . ":",
             ];
 
             $token_obj = curlRequest(
@@ -304,21 +272,25 @@ class InvoicesController extends AppMemberController
             if ($token_obj->error) {
                 $content = [
                     'status' => 'error',
-                    'message' => $token_obj->error
+                    'message' => $token_obj->error,
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $result = json_decode($token_obj->body);
 
+            \Cake\Log\Log::debug($result, 'payments');
+
             if (isset($result->error)) {
                 $content = [
                     'status' => 'error',
-                    'message' => $result->error->message
+                    'message' => $result->error->message,
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $data = [
@@ -329,11 +301,11 @@ class InvoicesController extends AppMemberController
             ];
 
             $headers = [
-                "Content-Type: application/x-www-form-urlencoded"
+                "Content-Type: application/x-www-form-urlencoded",
             ];
 
             $options = [
-                CURLOPT_USERPWD => get_option('stripe_secret_key') . ":"
+                CURLOPT_USERPWD => get_option('stripe_secret_key') . ":",
             ];
 
             $charge_obj = curlRequest(
@@ -347,21 +319,25 @@ class InvoicesController extends AppMemberController
             if ($charge_obj->error) {
                 $content = [
                     'status' => 'error',
-                    'message' => $charge_obj->error
+                    'message' => $charge_obj->error,
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $charge = json_decode($charge_obj->body);
 
+            \Cake\Log\Log::debug($charge, 'payments');
+
             if (isset($charge->error)) {
                 $content = [
                     'status' => 'error',
-                    'message' => $charge->error->message
+                    'message' => $charge->error->message,
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $invoice->payment_method = 'stripe';
@@ -375,16 +351,17 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'url',
-                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true)
+                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('coinpayments' == $this->request->data['payment_method']) {
+        if ('coinpayments' === $this->getRequest()->getData('payment_method')) {
             $ipn_url = Router::url('/payment/ipn?payment_method=coinpayments', true);
 
-            $req = array(
+            $req = [
                 'version' => 1,
                 'cmd' => 'create_transaction',
                 'key' => get_option('coinpayments_public_key'),
@@ -392,10 +369,11 @@ class InvoicesController extends AppMemberController
                 'amount' => $invoice->amount,
                 'currency1' => get_option('currency_code'),
                 'currency2' => 'BTC',
+                'buyer_email' => $user->email,
                 'item_name' => __("Invoice") . ' #' . $invoice->id,
                 'ipn_url' => $ipn_url,
-                'custom' => $invoice->id
-            );
+                'custom' => $invoice->id,
+            ];
 
             $url = "https://www.coinpayments.net/api.php";
 
@@ -405,21 +383,24 @@ class InvoicesController extends AppMemberController
 
             $headers = [
                 "Content-Type: application/x-www-form-urlencoded",
-                "HMAC: " . $hmac
+                "HMAC: " . $hmac,
             ];
 
             $result = curlRequest($url, "POST", $post_data, $headers);
             $response = json_decode($result->body);
+
+            \Cake\Log\Log::debug($response, 'payments');
 
             if (isset($response->error) && $response->error !== 'ok') {
                 $content = [
                     'status' => 'error',
                     'message' => $response->error,
                     'type' => 'url',
-                    'url' => ''
+                    'url' => '',
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
             }
 
             $redirect_url = $response->result->status_url;
@@ -431,80 +412,58 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'url',
-                'url' => $redirect_url
+                'url' => $redirect_url,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('coinbase' == $this->request->data['payment_method']) {
+        if ('coinbase' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $alert_url = Router::url('/payment/ipn?payment_method=coinbase', true);
 
+            // https://commerce.coinbase.com/docs/api/#create-a-checkout
             $paymentData = [
-                'amount' => $invoice->amount,
-                'currency' => get_option('currency_code'),
                 'name' => __("Invoice") . ' #' . $invoice->id,
-                //'description' => '',
-                'type' => 'order',
+                'description' => mb_substr($invoice->description, 0, 200),
+                'pricing_type' => 'fixed_price',
+                'local_price' => [
+                    'amount' => $invoice->amount,
+                    'currency' => get_option('currency_code'),
+                ],
+                'metadata' => [
+                    'invoice_id' => $invoice->id,
+                ],
                 'success_url' => $return_url,
                 'cancel_url' => $return_url,
-                'notifications_url' => $alert_url,
-                'auto_redirect' => true,
-                'metadata' => [
-                    'invoice_id' => $invoice->id
-                ]
             ];
 
-            $url = "https://api.coinbase.com/v2/checkouts";
+            $url = "https://api.commerce.coinbase.com/charges";
 
-            /*
-             * Get Coinbase timestamp
-            $headers = [
-                "CB-VERSION: 2016-09-12",
-                "Content-Type: application/json",
-            ];
-
-            $url = 'https://api.coinbase.com/v2/time';
-            $response = json_decode(curlRequest($url, "GET", [], $headers)->body);
-
-            pr($response->data->epoch);
-            */
-
-            $timestamp = time();
-            $method = 'POST';
-            $path = '/v2/checkouts';
             $body = json_encode($paymentData);
 
-            $sign = hash_hmac('sha256', $timestamp . $method . $path . $body, get_option('coinbase_api_secret'));
-
             $headers = [
-                "CB-ACCESS-KEY: " . get_option('coinbase_api_key'),
-                "CB-ACCESS-SIGN: {$sign}",
-                "CB-ACCESS-TIMESTAMP: {$timestamp}",
-                "CB-VERSION: 2016-09-12",
+                "X-CC-Api-Key: " . get_option('coinbase_api_key'),
+                "X-CC-Version: 2018-03-22",
                 "Content-Type: application/json",
             ];
             $result = curlRequest($url, "POST", $body, $headers);
             $response = json_decode($result->body);
 
-            if (isset($response->errors)) {
-                $message = '';
-                foreach ($response->errors as $error) {
-                    $message .= $error->id . " - " . $error->message . "\n";
-                }
+            \Cake\Log\Log::debug($response, 'payments');
 
+            if (isset($response->error)) {
                 $content = [
                     'status' => 'error',
-                    'message' => $message,
+                    'message' => $response->error->message,
                     'type' => 'url',
-                    'url' => ''
+                    'url' => '',
                 ];
-                $this->response->body(json_encode($content));
-                return $this->response;
-            }
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
 
-            $redirect_url = "https://www.coinbase.com/checkouts/" . $response->data->embed_code;
+                return $this->getResponse();
+            }
 
             $invoice->payment_method = 'coinbase';
             $this->Invoices->save($invoice);
@@ -513,13 +472,14 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'url',
-                'url' => $redirect_url
+                'url' => $response->data->hosted_url,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('webmoney' == $this->request->data['payment_method']) {
+        if ('webmoney' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $result_url = Router::url('/payment/ipn?payment_method=webmoney', true);
 
@@ -531,7 +491,7 @@ class InvoicesController extends AppMemberController
                 'LMI_PAYEE_PURSE' => get_option('webmoney_merchant_purse'),
                 'LMI_RESULT_URL' => $result_url,
                 'LMI_SUCCESS_URL' => $return_url,
-                'LMI_FAIL_URL' => $return_url
+                'LMI_FAIL_URL' => $return_url,
             ];
 
             $url = 'https://merchant.wmtransfer.com/lmi/payment.asp';
@@ -545,17 +505,18 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('perfectmoney' == $this->request->data['payment_method']) {
+        if ('perfectmoney' === $this->getRequest()->getData('payment_method')) {
             $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
             $status_url = Router::url('/payment/ipn?payment_method=perfectmoney', true);
 
-            // https://wiki.wmtransfer.com/projects/webmoney/wiki/Web_Merchant_Interface
+            // https://perfectmoney.is/sample-api.html
             $paymentData = [
                 'PAYEE_ACCOUNT' => get_option('perfectmoney_account'),
                 'PAYEE_NAME' => get_option('site_name'),
@@ -564,12 +525,12 @@ class InvoicesController extends AppMemberController
                 'PAYMENT_ID' => $invoice->id,
                 'STATUS_URL' => $status_url,
                 'PAYMENT_URL' => $return_url,
-                'PAYMENT_URL_METHOD' => 'POST',
+                'PAYMENT_URL_METHOD' => 'GET',
                 'NOPAYMENT_URL' => $return_url,
                 'NOPAYMENT_URL_METHOD' => 'GET',
                 'BAGGAGE_FIELDS' => '',
                 'SUGGESTED_MEMO' => __("Invoice") . ' #' . $invoice->id,
-                'SUGGESTED_MEMO_NOCHANGE' => 1
+                'SUGGESTED_MEMO_NOCHANGE' => 1,
             ];
 
             $url = 'https://perfectmoney.is/api/step1.asp';
@@ -583,13 +544,14 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('payeer' == $this->request->data['payment_method']) {
+        if ('payeer' === $this->getRequest()->getData('payment_method')) {
             $m_shop = get_option('payeer_merchant_id');
             $m_orderid = $invoice->id;
             $m_amount = number_format($invoice->amount, 2, '.', '');
@@ -605,7 +567,7 @@ class InvoicesController extends AppMemberController
                 $m_orderid,
                 $m_amount,
                 $m_curr,
-                $m_desc
+                $m_desc,
             ];
 
             // Forming an array for additional parameters
@@ -663,13 +625,110 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'form',
-                'form' => $form
+                'form' => $form,
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ('banktransfer' == $this->request->data['payment_method']) {
+        if ('paystack' === $this->request->getData('payment_method')) {
+            $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
+            $webhook_url = Router::url('/payment/ipn?payment_method=paystack', true);
+
+            $post_data = [
+                'email' => $user->email,
+                'currency' => get_option('currency_code'),
+                'amount' => $invoice->amount * 100,
+                "reference" => $invoice->id,
+                'callback_url' => $return_url,
+                'webhook_url' => $webhook_url,
+                'metadata' => [
+                    'cancel_action' => $return_url,
+                ],
+            ];
+
+            $headers = [
+                'Authorization: Bearer ' . get_option('paystack_secret_key'),
+                'Content-Type: application/json',
+
+            ];
+
+            $url = 'https://api.paystack.co/transaction/initialize';
+
+            $result = curlRequest($url, "POST", json_encode($post_data), $headers);
+            $response = json_decode($result->body);
+
+            \Cake\Log\Log::debug($response, 'payments');
+
+            if (isset($response->status) && (int)$response->status !== 1) {
+                $content = [
+                    'status' => 'error',
+                    'message' => $response->message,
+                    'type' => 'url',
+                    'url' => '',
+                ];
+                $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+                return $this->getResponse();
+            }
+
+            $redirect_url = $response->data->authorization_url;
+
+            $invoice->payment_method = 'paystack';
+            $this->Invoices->save($invoice);
+
+            $content = [
+                'status' => 'success',
+                'message' => '',
+                'type' => 'url',
+                'url' => $redirect_url,
+            ];
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
+        }
+
+        if ('paytm' == $this->getRequest()->getData('payment_method')) {
+            $return_url = Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true);
+            $notify_url = Router::url('/payment/ipn?payment_method=paytm', true);
+
+            require_once(APP . 'Library/gateways/paytm/encdec_paytm.php');
+
+            $paymentData = [
+                'MID' => get_option('paytm_merchant_mid'),
+                'ORDER_ID' => $invoice->id,
+                'CUST_ID' => $user->email,
+                'TXN_AMOUNT' => $invoice->amount,
+                'CHANNEL_ID' => 'WEB',
+                'INDUSTRY_TYPE_ID' => get_option('paytm_industry_type'),
+                'CALLBACK_URL' => $notify_url,
+                'WEBSITE' => get_option('paytm_merchant_website'),
+            ];
+
+            $paytmChecksum = getChecksumFromArray($paymentData, get_option('paytm_merchant_key'));
+
+            $paymentData['CHECKSUMHASH'] = $paytmChecksum;
+
+            $url = 'https://securegw.paytm.in/theia/processTransaction';
+
+            $form = $this->redirect_post($url, $paymentData);
+
+            $invoice->payment_method = 'paytm';
+            $this->Invoices->save($invoice);
+
+            $content = [
+                'status' => 'success',
+                'message' => '',
+                'type' => 'form',
+                'form' => $form,
+            ];
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
+        }
+
+        if ('banktransfer' === $this->getRequest()->getData('payment_method')) {
             $invoice->payment_method = 'banktransfer';
             $this->Invoices->save($invoice);
 
@@ -677,18 +736,20 @@ class InvoicesController extends AppMemberController
                 'status' => 'success',
                 'message' => '',
                 'type' => 'offline',
-                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true)
+                'url' => Router::url(['controller' => 'Invoices', 'action' => 'view', $invoice->id], true),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
         $content = [
             'status' => 'error',
-            'message' => __("Invalide payment method.")
+            'message' => __("Invalid payment method."),
         ];
-        $this->response->body(json_encode($content));
-        return $this->response;
+        $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+        return $this->getResponse();
     }
 
     protected function redirect_post($url, array $data)
@@ -706,6 +767,8 @@ class InvoicesController extends AppMemberController
         $form = ob_get_contents();
         ob_end_clean();
 
+        \Cake\Log\Log::debug($form, 'payments');
+
         return $form;
     }
 
@@ -720,11 +783,12 @@ class InvoicesController extends AppMemberController
             throw new NotFoundException(__('Invalid Invoice'));
         }
 
-        if ($this->request->is(['post', 'put'])) {
-            $invoice = $this->Invoices->patchEntity($invoice, $this->request->data);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $invoice = $this->Invoices->patchEntity($invoice, $this->getRequest()->getData());
 
             if ($this->Invoices->save($invoice)) {
                 $this->Flash->success(__('Invoice has been updated.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
@@ -734,12 +798,13 @@ class InvoicesController extends AppMemberController
 
     public function delete($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->getRequest()->allowMethod(['post', 'delete']);
 
         $invoice = $this->Invoices->findById($id)->where(['user_id' => $this->Auth->user('id')])->first();
 
         if ($this->Invoices->delete($invoice)) {
             $this->Flash->success(__('The invoice with id: {0} has been deleted.', $invoice->id));
+
             return $this->redirect(['action' => 'index']);
         }
     }

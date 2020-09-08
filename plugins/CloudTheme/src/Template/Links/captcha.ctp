@@ -9,19 +9,30 @@ $this->assign('og_image', $link->image);
 
 <?php $this->start('scriptTop'); ?>
 <script type="text/javascript">
-    if (window.self !== window.top) {
-        window.top.location.href = window.location.href;
-    }
+  if (window.self !== window.top) {
+    window.top.location.href = window.location.href;
+  }
 </script>
 <?php $this->end(); ?>
 
 <div class="box-main">
 
-    <?php if (!empty($captcha_ad)) : ?>
+    <?php if (!empty($ad_captcha_above)) : ?>
         <div class="banner banner-captcha">
             <div class="banner-inner">
-                <?= $captcha_ad; ?>
+                <?= $ad_captcha_above; ?>
             </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($post): ?>
+        <div class="blog-item">
+            <div class="page-header">
+                <h3>
+                    <small><a href="<?= build_main_domain_url('/blog') ?>"><?= __('From Our Blog') ?>:</a>
+                    </small> <?= h($post->title) ?></h3>
+            </div>
+            <div class="blog-content"><?= $post->description ?></div>
         </div>
     <?php endif; ?>
 
@@ -67,18 +78,28 @@ $this->assign('og_image', $link->image);
 
             <?= $this->Form->hidden('ref', ['value' => strtolower(env('HTTP_REFERER'))]); ?>
 
+            <?= $this->Form->hidden('f_n', ['value' => 'slc']); ?>
+
             <div class="form-group text-center">
                 <div id="captchaShortlink" style="display: inline-block;"></div>
             </div>
 
             <?= $this->Form->button(__('Click here to continue'), [
                 'class' => 'btn btn-primary btn-captcha',
-                'id' => 'invisibleCaptchaShortlink'
+                'id' => 'invisibleCaptchaShortlink',
             ]); ?>
 
             <?= $this->Form->end() ?>
         </div>
     </div>
+
+    <?php if (!empty($ad_captcha_below)) : ?>
+        <div class="banner banner-captcha">
+            <div class="banner-inner">
+                <?= $ad_captcha_below; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
 </div>
 
@@ -86,11 +107,11 @@ $this->assign('og_image', $link->image);
 
     <h3><?= __('What is {0}?', h(get_option('site_name'))) ?></h3>
     <p><?= __(
-        '{0} is a completely free tool where you can create short links, which apart from being free, ' .
+            '{0} is a completely free tool where you can create short links, which apart from being free, ' .
             'you get paid! So, now you can make money from home, when managing and protecting your links. ' .
             'Register now!',
-        h(get_option('site_name'))
-    ) ?></p>
+            h(get_option('site_name'))
+        ) ?></p>
 
     <h3><?= __('Shorten URLs and earn money') ?></h3>
     <p><?= __("Signup for an account in just 2 minutes. Once you've completed your registration just start " .

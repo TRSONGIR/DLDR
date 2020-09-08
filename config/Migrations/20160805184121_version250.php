@@ -15,60 +15,60 @@ class Version250 extends AbstractMigration
         $rows = [
             [
                 'name' => 'paypal_enable',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'payza_enable',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'payza_email',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'interstitial_ads',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'account_activate_email',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'anonymous_default_advert',
-                'value' => '1'
+                'value' => (is_app_installed()) ? 1 : 2,
             ],
             [
                 'name' => 'member_default_advert',
-                'value' => '1'
+                'value' => (is_app_installed()) ? 1 : 2,
             ],
             [
                 'name' => 'enable_interstitial',
-                'value' => 'yes'
+                'value' => (is_app_installed()) ? 'yes' : 'no',
             ],
             [
                 'name' => 'enable_banner',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'enable_noadvert',
-                'value' => 'yes'
+                'value' => (is_app_installed()) ? 'yes' : 'no',
             ],
             [
                 'name' => 'referral_banners_code',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'auth_head_code',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'member_head_code',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'admin_head_code',
-                'value' => ''
-            ]
+                'value' => '',
+            ],
         ];
 
         $this->table('options')
@@ -80,7 +80,7 @@ class Version250 extends AbstractMigration
                 'default' => '',
                 'limit' => 256,
                 'null' => false,
-                'after' => 'status'
+                'after' => 'status',
             ])
             ->update();
 
@@ -89,7 +89,7 @@ class Version250 extends AbstractMigration
                 'default' => '',
                 'limit' => 256,
                 'null' => false,
-                'after' => 'amount'
+                'after' => 'amount',
             ])
             ->update();
     }
@@ -114,7 +114,7 @@ class Version250 extends AbstractMigration
             "'referral_banners_code'",
             "'auth_head_code'",
             "'member_head_code'",
-            "'admin_head_code'"
+            "'admin_head_code'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 

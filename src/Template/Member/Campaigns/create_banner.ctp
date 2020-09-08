@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign $campaign
+ */
 $this->assign('title', __('Create Banner Campaign'));
 $this->assign('description', '');
 $this->assign('content_title', __('Create Banner Campaign'));
@@ -7,12 +11,12 @@ $this->assign('content_title', __('Create Banner Campaign'));
 <div class="box box-primary">
     <div class="box-body">
 
-        <?php if (isset($this->request->query['traffic_source']) &&
-            in_array($this->request->query['traffic_source'], [1, 2, 3])
+        <?php if ($this->request->getQuery('traffic_source') &&
+            in_array($this->request->getQuery('traffic_source'), [1, 2, 3])
         ) : ?>
 
             <?php
-            $traffic_source = $this->request->query['traffic_source'];
+            $traffic_source = $this->request->getQuery('traffic_source');
             $banner_price = get_option('banner_price');
             $countries = get_countries(true);
             $i = 0;
@@ -38,7 +42,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
             ?>
 
             <?=
-            $this->Form->input('name', [
+            $this->Form->control('name', [
                 'label' => __('Campaign Name'),
                 'class' => 'form-control'
             ]);
@@ -47,7 +51,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
             <legend><?= __('Banner Details') ?></legend>
 
             <?=
-            $this->Form->input('banner_name', [
+            $this->Form->control('banner_name', [
                 'label' => __('Banner Name'),
                 'class' => 'form-control'
             ]);
@@ -55,7 +59,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
             <span class="help-block"><?= __('(only for internal use)') ?></span>
 
             <?=
-            $this->Form->input('banner_size', [
+            $this->Form->control('banner_size', [
                 'label' => __('Banner Size'),
                 'options' => [
                     '728x90' => __('Leaderboard - 728x90'),
@@ -68,7 +72,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
             ?>
 
             <?=
-            $this->Form->input('banner_code', [
+            $this->Form->control('banner_code', [
                 'label' => __('Banner Code'),
                 'class' => 'form-control',
                 'type' => 'textarea'
@@ -105,7 +109,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
                             <?= $this->Form->hidden("campaign_items.$i.country", ['value' => $key]); ?>
 
                             <?=
-                            $this->Form->input("campaign_items.$i.purchase", [
+                            $this->Form->control("campaign_items.$i.purchase", [
                                 'label' => false,
                                 'class' => 'form-control',
                                 'type' => 'number',
@@ -147,7 +151,7 @@ $this->assign('content_title', __('Create Banner Campaign'));
             <?= $this->Form->create(null, ['type' => 'get']); ?>
 
             <?=
-            $this->Form->input('traffic_source', [
+            $this->Form->control('traffic_source', [
                 'label' => __('Traffic Sources/Devices'),
                 'options' => [
                     '1' => __('Desktop, Mobile and Tablet'),

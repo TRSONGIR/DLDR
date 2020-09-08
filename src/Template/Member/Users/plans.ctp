@@ -1,4 +1,11 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Plan[]|\Cake\Collection\CollectionInterface $plans
+ * @var \App\Model\Entity\User $user
+ */
+?>
+<?php
 $this->assign('title', __('Change Your Plan'));
 $this->assign('description', '');
 $this->assign('content_title', __('Change Your Plan'));

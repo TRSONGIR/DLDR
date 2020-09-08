@@ -15,95 +15,95 @@ class Version400 extends AbstractMigration
         $rows = [
             [
                 'name' => 'stripe_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'stripe_secret_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'stripe_publishable_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinpayments_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'coinpayments_public_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinpayments_private_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinpayments_merchant_id',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinpayments_ipn_secret',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'perfectmoney_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'perfectmoney_account',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'perfectmoney_passphrase',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'payeer_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'payeer_merchant_id',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'payeer_secret_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'payeer_encryption_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'combine_minify_css_js',
-                'value' => 1
+                'value' => 1,
             ],
             [
                 'name' => 'assets_cdn_url',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'favicon_url',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'force_disable_adblock',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'unique_visitor_per',
-                'value' => 'campaign'
+                'value' => 'campaign',
             ],
             [
                 'name' => 'bitcoin_processor',
-                'value' => 'coinbase'
-            ]
+                'value' => 'coinbase',
+            ],
         ];
 
         $this->table('options')
             ->insert($rows)
             ->saveData();
 
-        $this->execute("UPDATE `{$table_prefix}options` SET `name` = 'paid_views_day' WHERE ".
+        $this->execute("UPDATE `{$table_prefix}options` SET `name` = 'paid_views_day' WHERE " .
             "`name` = 'campaign_paid_views_day';");
 
         $this->table('links')
@@ -112,7 +112,7 @@ class Version400 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->changeColumn('url', 'text', [
                 'default' => null,
@@ -127,7 +127,7 @@ class Version400 extends AbstractMigration
                 'default' => 0,
                 'limit' => null,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
 
@@ -136,13 +136,13 @@ class Version400 extends AbstractMigration
                 'after' => 'expiration',
                 'default' => '',
                 'limit' => 45,
-                'null' => false
+                'null' => false,
             ])
             ->addColumn('register_ip', 'string', [
                 'after' => 'login_ip',
                 'default' => '',
                 'limit' => 45,
-                'null' => false
+                'null' => false,
             ])
             ->update();
 
@@ -153,7 +153,7 @@ class Version400 extends AbstractMigration
                 'default' => 0,
                 'limit' => 10,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
 
@@ -162,7 +162,7 @@ class Version400 extends AbstractMigration
             ->update();
 
         $items = implode(",", [
-            "'coinbase_sandbox'"
+            "'coinbase_sandbox'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
     }
@@ -194,11 +194,11 @@ class Version400 extends AbstractMigration
             "'favicon_url'",
             "'force_disable_adblock'",
             "'unique_visitor_per'",
-            "'bitcoin_processor'"
+            "'bitcoin_processor'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
-        $this->execute("UPDATE `{$table_prefix}options` SET `name` = 'campaign_paid_views_day' WHERE ".
+        $this->execute("UPDATE `{$table_prefix}options` SET `name` = 'campaign_paid_views_day' WHERE " .
             "`name` = 'paid_views_day';");
 
         $this->table('links')
@@ -208,7 +208,7 @@ class Version400 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->changeColumn('url', 'string', [
                 'default' => '',
@@ -233,8 +233,8 @@ class Version400 extends AbstractMigration
         $rows = [
             [
                 'name' => 'coinbase_sandbox',
-                'value' => 'no'
-            ]
+                'value' => 'no',
+            ],
         ];
 
         $this->table('options')

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Invoice $invoice
+ */
 $this->assign('title', __('Invoice #{0}', $invoice->id));
 $this->assign('description', '');
 $this->assign('content_title', __('Invoice #{0}', $invoice->id));
@@ -10,7 +14,7 @@ $statuses = [
     2 => __('Unpaid'),
     3 => __('Canceled'),
     4 => __('Invalid Payment'),
-    5 => __('Refunded')
+    5 => __('Refunded'),
 ]
 ?>
 

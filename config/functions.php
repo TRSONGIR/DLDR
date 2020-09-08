@@ -19,6 +19,7 @@ function database_connect()
             }
         }
     }
+
     return $connected;
 }
 
@@ -45,7 +46,7 @@ function get_option($name, $default = '')
         static $settings;
 
         if (!isset($settings)) {
-            $options = \Cake\ORM\TableRegistry::get('Options');
+            $options = \Cake\ORM\TableRegistry::getTableLocator()->get('Options');
             //$query   = $options->find()->select( ['name', 'value' ] )->cache( 'options' )->all();
             $query = $options->find()->select(['name', 'value'])->all();
             $settings = [];
@@ -79,9 +80,6 @@ function is_serialized($data)
     }
 }
 
-/**
- *
- */
 function get_http_headers($url, $options = [])
 {
     $ch = curl_init();
@@ -121,9 +119,6 @@ function get_http_headers($url, $options = [])
     return $data;
 }
 
-/**
- *
- */
 function curlRequest($url, $method = 'GET', $data = [], $headers = [], $options = [])
 {
     $ch = curl_init();
@@ -188,9 +183,6 @@ function curlRequest($url, $method = 'GET', $data = [], $headers = [], $options 
     return $result;
 }
 
-/**
- *
- */
 function curlHtmlHeadRequest($url, $method = 'GET', $data = [], $headers = [], $options = [])
 {
     $obj = new \stdClass(); //create an object variable to access class functions and variables
@@ -265,9 +257,9 @@ function curlHtmlHeadRequest($url, $method = 'GET', $data = [], $headers = [], $
     return $obj->result;
 }
 
-function emptyTmp()
+function emptyCache()
 {
-    $dir = new \Cake\Filesystem\Folder(TMP);
+    $dir = new \Cake\Filesystem\Folder(CACHE);
     $files = $dir->findRecursive('.*', true);
 
     foreach ($files as $file) {
@@ -302,7 +294,11 @@ function isset_captcha()
 
     $captcha_type = get_option('captcha_type', 'recaptcha');
 
-    if ($captcha_type == 'recaptcha') {
+    if ($captcha_type === 'securimage') {
+        return true;
+    }
+
+    if ($captcha_type === 'recaptcha') {
         $recaptcha_siteKey = get_option('reCAPTCHA_site_key');
         $recaptcha_secretKey = get_option('reCAPTCHA_secret_key');
         if (!empty($recaptcha_siteKey) && !empty($recaptcha_secretKey)) {
@@ -310,7 +306,7 @@ function isset_captcha()
         }
     }
 
-    if ($captcha_type == 'invisible-recaptcha') {
+    if ($captcha_type === 'invisible-recaptcha') {
         $recaptcha_siteKey = get_option('invisible_reCAPTCHA_site_key');
         $recaptcha_secretKey = get_option('invisible_reCAPTCHA_secret_key');
         if (!empty($recaptcha_siteKey) && !empty($recaptcha_secretKey)) {
@@ -318,7 +314,7 @@ function isset_captcha()
         }
     }
 
-    if ($captcha_type == 'solvemedia') {
+    if ($captcha_type === 'solvemedia') {
         $solvemedia_challenge_key = get_option('solvemedia_challenge_key');
         $solvemedia_verification_key = get_option('solvemedia_verification_key');
         $solvemedia_authentication_key = get_option('solvemedia_authentication_key');
@@ -350,6 +346,7 @@ function generate_random_string($length = 10, $special = false)
         $string .= $all_chars{$random};
         $i = $i + 1;
     }
+
     return $string;
 }
 
@@ -371,33 +368,50 @@ function random_ipv4()
  */
 function get_ip()
 {
-    if (env("HTTP_CF_CONNECTING_IP")) {
-        $ip = env("HTTP_CF_CONNECTING_IP");
-    } elseif (env("HTTP_CLIENT_IP")) {
-        $ip = env("HTTP_CLIENT_IP");
-    } elseif (env("HTTP_X_FORWARDED_FOR")) {
-        $ip = env("HTTP_X_FORWARDED_FOR");
-        if (strstr($ip, ',')) {
-            $tmp = explode(',', $ip);
-            $ip = trim($tmp[0]);
+    static $ip;
+
+    if (!isset($ip)) {
+        if (!empty($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+            $ip = $_SERVER["HTTP_CF_CONNECTING_IP"];
+        } elseif (!empty($_SERVER["HTTP_FASTLY_CLIENT_IP"])) {
+            $ip = $_SERVER["HTTP_FASTLY_CLIENT_IP"];
+        } elseif (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+            $ip = $_SERVER["HTTP_CLIENT_IP"];
+        } else {
+            $ip = $_SERVER["REMOTE_ADDR"];
         }
-    } else {
-        $ip = env("REMOTE_ADDR");
     }
 
     //$ip = random_ipv4();
     return $ip;
 }
 
+/**
+ * @return bool
+ */
+function validCrawler()
+{
+    $ips = file_get_contents(APP . 'Library/ips.txt');
+    $ips = array_filter(array_map('trim', explode("\n", $ips)));
+
+    return \App\Library\IpUtils::checkIp(get_ip(), $ips);
+}
+
+function price_database_format($price = 0)
+{
+    return number_format(floatval($price), 9, '.', '');
+}
+
 function display_price_currency($price, $options = [])
 {
     $defaults = [
-        'precision' => 6,
-        'places' => 2,
+        'precision' => get_option('price_decimals', 6),
+        'places' => get_option('price_decimals', 6),
         'locale' => locale_get_default(),
-        get_option('currency_position', 'before') => get_option('currency_symbol', '$')
+        get_option('currency_position', 'before') => get_option('currency_symbol', '$'),
     ];
     $options = array_merge($defaults, $options);
+
     return \Cake\I18n\Number::format($price, $options);
 }
 
@@ -406,7 +420,12 @@ function display_date_timezone($time)
     if (!$time) {
         return '';
     }
-    return \Cake\I18n\Time::instance($time)->i18nFormat(null, get_option('timezone', 'UTC'), null);
+
+    try {
+        return \Cake\I18n\Time::instance($time)->i18nFormat(null, get_option('timezone', 'UTC'), null);
+    } catch (\Exception $exception) {
+        return $time;
+    }
 }
 
 function require_database_upgrade()
@@ -414,6 +433,7 @@ function require_database_upgrade()
     if (version_compare(APP_VERSION, get_option('app_version', '1.0.0'), '>')) {
         return true;
     }
+
     return false;
 }
 
@@ -428,6 +448,7 @@ function get_logo()
         $data['type'] = 'image';
         $data['content'] = "<img src='{$logo_url}' alt='{$site_name}' />";
     }
+
     return $data;
 }
 
@@ -442,27 +463,58 @@ function get_logo_alt()
         $data['type'] = 'image';
         $data['content'] = "<img src='{$logo_url}' alt='{$site_name}' />";
     }
+
     return $data;
+}
+
+function build_main_domain_url($path = null)
+{
+    if (preg_match('#^(http://|https://|//)#i', $path) === 1) {
+        return $path;
+    }
+
+    static $base_url;
+
+    if (!isset($base_url)) {
+        $request = \Cake\Routing\Router::getRequest();
+
+        $base = '';
+        if ($request !== null) {
+            $base = $request->getAttribute("base");
+        }
+
+        $main_domain = get_option('main_domain');
+
+        $protocol = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://" : "https://";
+
+        $base_url = $protocol . $main_domain . $base;
+    }
+
+    $url = $base_url;
+
+    if ($path) {
+        $url .= $path;
+    }
+
+    return $url;
 }
 
 function get_short_url($alias = '', $domain = '')
 {
+    //\Cake\Routing\Router::url(['_name' => 'short', 'alias' => 'jimmy'], true);
     if (empty($domain)) {
         $domain = get_default_short_domain();
     }
-    /*
-      $base_url = \Cake\Routing\Router::url([
-      '_scheme' => 'http',
-      '_host' => $domain,
-      'controller' => null,
-      'action' => null,
-      'plugin' => null,
-      'prefix' => false
-      ], true);
-     */
+
     $request = \Cake\Routing\Router::getRequest();
-    $base_url = 'http://' . $domain . $request->base;
-    //$base_url = str_ireplace('https://', 'http://', $base_url);
+
+    $scheme = 'http://';
+    if (get_option('https_shortlinks', false)) {
+        $scheme = 'https://';
+    }
+
+    $base_url = $scheme . $domain . $request->getAttribute("base");
+
     return $base_url . '/' . $alias;
 }
 
@@ -504,16 +556,18 @@ function get_all_multi_domains_list()
     $default_short_domain = get_option('default_short_domain', '');
     if (!empty($default_short_domain)) {
         $add_domains[$default_short_domain] = $default_short_domain;
+
         return $add_domains + $domains;
     }
 
     $main_domain = get_option('main_domain', '');
     if (!empty($main_domain)) {
         $add_domains[$main_domain] = $main_domain;
+
         return $add_domains + $domains;
     }
 
-    $add_domains[env("HTTP_HOST", "")] = env("HTTP_HOST", "");
+    $add_domains[$_SERVER['HTTP_HOST']] = $_SERVER['HTTP_HOST'];
 
     return $add_domains + $domains;
 }
@@ -535,7 +589,7 @@ function get_all_domains_list()
         $add_domains = $add_domains + $domains;
     }
 
-    $add_domains[env("HTTP_HOST", "")] = env("HTTP_HOST", "");
+    $add_domains[$_SERVER['HTTP_HOST']] = $_SERVER['HTTP_HOST'];
 
     return $add_domains + $domains;
 }
@@ -544,16 +598,22 @@ function get_allowed_ads()
 {
     $ads = [];
 
+    if (get_option('enable_noadvert', 'yes') == 'yes') {
+        $ads[0] = __('No Advert');
+    }
+
     if (get_option('enable_interstitial', 'yes') == 'yes') {
-        $ads['1'] = __('Interstitial');
+        $ads[1] = __('Interstitial Advertisement');
     }
 
     if (get_option('enable_banner', 'yes') == 'yes') {
-        $ads['2'] = __('Banner');
+        $ads[2] = __('Banner Advertisement');
     }
 
-    if (get_option('enable_noadvert', 'yes') == 'yes') {
-        $ads['0'] = __('No Advert');
+    if ((bool)get_option('enable_random_ad_type', 0)) {
+        if (array_key_exists(1, $ads) && array_key_exists(2, $ads)) {
+            $ads[3] = __('Random(Interstitial or Banner) Advertisement');
+        }
     }
 
     return $ads;
@@ -573,7 +633,9 @@ function get_statistics_reasons()
         8 => __("Full Weight"),
         9 => __("Default Campaign"),
         10 => __("Direct"),
-        11 => __("Invalid country")
+        11 => __("Invalid country"),
+        12 => __("Earnings disabled"),
+        13 => __("User disabled earnings"),
     ];
 }
 
@@ -622,122 +684,47 @@ function get_payment_methods()
     if ((bool)get_option('payeer_enable', false)) {
         $payment_methods['payeer'] = __("Payeer");
     }
-	if (get_option('zarinpal_enable', 'no') == 'yes') {
-        $payment_methods['zarinpal'] = __('zarinpal');
+
+    if ((bool)get_option('paystack_enable', false)) {
+        $payment_methods['paystack'] = __("Paystack");
+    }
+
+    if ((bool)get_option('paytm_enable', false)) {
+        $payment_methods['paytm'] = __("Paytm");
     }
 
     if (get_option('banktransfer_enable', 'no') == 'yes') {
         $payment_methods['banktransfer'] = __("Bank Transfer");
     }
+
     return $payment_methods;
 }
 
 function get_withdrawal_methods()
 {
-    $withdrawal_methods = [];
+    $options = \Cake\ORM\TableRegistry::getTableLocator()->get('Options');
+
+    $withdrawal_methods = json_decode($options->findByName('withdraw_methods')->first()->value, true);
+
+    $methods = [];
+
+    foreach ($withdrawal_methods as $withdrawal_method) {
+        if ($withdrawal_method['status']) {
+            $methods[] = $withdrawal_method;
+        }
+    }
 
     if ((bool)get_option('wallet_enable', false)) {
-        $withdrawal_methods[] = [
+        $methods[] = [
             'id' => 'wallet',
             'name' => __('My Wallet'),
-            'amount' => get_option('wallet_withdrawal_amount', 5)
+            'amount' => get_option('wallet_withdrawal_amount', 5),
+            'image' => '',
+            'description' => '',
         ];
     }
 
-    if ((bool)get_option('paypal_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'paypal',
-            'name' => __('PayPal'),
-            'amount' => get_option('paypal_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('payza_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'payza',
-            'name' => __('Payza'),
-            'amount' => get_option('payza_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('skrill_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'skrill',
-            'name' => __('Skrill'),
-            'amount' => get_option('skrill_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('bitcoin_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'bitcoin',
-            'name' => __('Bitcoin'),
-            'amount' => get_option('bitcoin_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('webmoney_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'webmoney',
-            'name' => __('Web Money'),
-            'amount' => get_option('webmoney_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('perfectmoney_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'perfectmoney',
-            'name' => __('Perfect Money'),
-            'amount' => get_option('perfectmoney_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('zarinpal_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'zarinpal',
-            'name' => __('Zarinpal'),
-            'amount' => get_option('zarinpal_withdrawal_amount', 5)
-        ];
-    }
-	if ((bool)get_option('payeer_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'payeer',
-            'name' => __('Payeer'),
-            'amount' => get_option('payeer_withdrawal_amount', 5)
-        ];
-    }
-
-    if ((bool)get_option('banktransfer_withdrawal_enable', false)) {
-        $withdrawal_methods[] = [
-            'id' => 'banktransfer',
-            'name' => __('Bank Transfer'),
-            'amount' => get_option('banktransfer_withdrawal_amount', 5)
-        ];
-    }
-
-    $custom_methods_blocks = explode(',', get_option('custom_withdrawal_methods'));
-    $custom_methods_blocks = array_map('trim', $custom_methods_blocks);
-    $custom_methods_blocks = array_filter($custom_methods_blocks);
-
-    if (empty($custom_methods_blocks)) {
-        return $withdrawal_methods;
-    }
-
-    foreach ($custom_methods_blocks as $block) {
-        $method = array_filter(explode('|', $block));
-
-        if (count($method) !== 3) {
-            continue;
-        }
-
-        $withdrawal_methods[] = [
-            'id' => $method[0],
-            'name' => $method[1],
-            'amount' => floatval($method[2])
-        ];
-    }
-
-    return $withdrawal_methods;
+    return $methods;
 }
 
 function get_site_languages($all = false)
@@ -750,11 +737,50 @@ function get_site_languages($all = false)
         $site_languages[$default_language] = $default_language;
     }
     ksort($site_languages);
+
     return $site_languages;
 }
 
-function get_user_plan($user)
+/**
+ * @return \App\Model\Entity\User|null
+ */
+function user()
 {
+    $request = \Cake\Routing\Router::getRequest();
+    $user_id = $request->getSession()->read('Auth.User.id');
+
+    if ($user_id === null) {
+        return null;
+    }
+
+    /**
+     * @var \App\Model\Table\UsersTable $users
+     */
+    $users = \Cake\ORM\TableRegistry::getTableLocator()->get('Users');
+
+    /**
+     * @var \App\Model\Entity\User $user
+     */
+    $user = $users->find()->contain(['Plans'])->where(['Users.id' => $user_id])->first();
+
+    return $user;
+}
+
+/**
+ * @param int $user_id
+ * @return \App\Model\Entity\Plan
+ */
+function get_user_plan($user_id)
+{
+    /**
+     * @var \App\Model\Entity\User $user
+     */
+    $user = \Cake\ORM\TableRegistry::getTableLocator()->get('Users')->find()
+        ->contain(['Plans'])->where(['Users.id' => $user_id])->first();
+
+    $expiration = $user->expiration;
+
+    /*
     if (is_object($user)) {
         $expiration = $user->expiration;
     }
@@ -763,44 +789,264 @@ function get_user_plan($user)
         $expiration = $user['expiration'];
         $user = json_decode(json_encode($user), false);
     }
+    */
 
     if ($user->plan_id == 1) {
         return $user->plan;
     }
 
-    static $free_plan;
+    static $default_plan;
 
-    if (!isset($free_plan)) {
-        $free_plan = \Cake\ORM\TableRegistry::get('Plans')->get(1);
+    if (!isset($default_plan)) {
+        $default_plan = \Cake\ORM\TableRegistry::getTableLocator()->get('Plans')->get(1);
     }
 
     if (!isset($expiration)) {
-        return $free_plan;
+        return $user->plan;
     }
 
     $time = new \Cake\I18n\Time($expiration);
 
     if ($time->isPast()) {
-        return $free_plan;
+        return $default_plan;
     }
 
     return $user->plan;
 }
 
+function campaign_statuses($id = null)
+{
+    $statuses = [
+        1 => __('Active'),
+        2 => __('Paused'),
+        3 => __('Canceled'),
+        4 => __('Finished'),
+        5 => __('Under Review'),
+        6 => __('Pending Payment'),
+        7 => __('Invalid Payment'),
+        8 => __('Refunded'),
+    ];
+
+    if ($id === null) {
+        return $statuses;
+    }
+
+    return $statuses[$id];
+}
+
+function withdraw_statuses($id = null)
+{
+    $statuses = [
+        1 => __('Approved'),
+        2 => __('Pending'),
+        3 => __('Complete'),
+        4 => __('Cancelled'),
+        5 => __('Returned'),
+    ];
+
+    if ($id === null) {
+        return $statuses;
+    }
+
+    return $statuses[$id];
+}
+
+function invoice_statuses($id = null)
+{
+    $statuses = [
+        1 => __('Paid'),
+        2 => __('Unpaid'),
+        3 => __('Canceled'),
+        4 => __('Invalid Payment'),
+        5 => __('Refunded'),
+    ];
+
+    if ($id === null) {
+        return $statuses;
+    }
+
+    return $statuses[$id];
+}
+
 function data_encrypt($value)
 {
-    $key = \Cake\Utility\Security::salt();
+    $key = \Cake\Utility\Security::getSalt();
     $value = serialize($value);
     $value = \Cake\Utility\Security::encrypt($value, $key);
+
     return base64_encode($value);
 }
 
 function data_decrypt($value)
 {
-    $key = \Cake\Utility\Security::salt();
+    if (!is_string($value)) {
+        return false;
+    }
+
+    $key = \Cake\Utility\Security::getSalt();
     $value = base64_decode($value);
     $value = \Cake\Utility\Security::decrypt($value, $key);
+
     return unserialize($value);
+}
+
+function createEmailFile()
+{
+    /**
+     * @var \App\Model\Table\OptionsTable|\App\Model\Entity\Option[]
+     */
+    $options = \Cake\ORM\TableRegistry::getTableLocator()->get('Options');
+
+    $config = [
+        'site_name' => $options->findByName('site_name')->first()->value,
+        'email_from' => $options->findByName('email_from')->first()->value,
+        'email_method' => $options->findByName('email_method')->first()->value,
+        'email_smtp_host' => $options->findByName('email_smtp_host')->first()->value,
+        'email_smtp_port' => $options->findByName('email_smtp_port')->first()->value,
+        'email_smtp_username' => $options->findByName('email_smtp_username')->first()->value,
+        'email_smtp_password' => $options->findByName('email_smtp_password')->first()->value,
+        'email_smtp_tls' => 'false',
+    ];
+
+    $config = array_map(function ($value) {
+        return addcslashes($value, '\'');
+    }, $config);
+
+    $email_smtp_security = $options->findByName('email_smtp_security')->first()->value;
+
+    if (preg_match('#^ssl://#i', $config['email_smtp_host'])) {
+        $config['email_smtp_host'] = preg_replace('#^ssl://#i', '', $config['email_smtp_host']);
+        $email_smtp_host = $options->findByName('email_smtp_host')->first();
+        $email_smtp_host->value = $config['email_smtp_host'];
+        $options->save($email_smtp_host);
+    }
+
+    if ($email_smtp_security == 'tls') {
+        $config['email_smtp_tls'] = 'true';
+    }
+
+    if ($email_smtp_security == 'ssl') {
+        $config['email_smtp_host'] = 'ssl://' . $config['email_smtp_host'];
+    }
+
+    $result = copy(CONFIG . 'email.install', CONFIG . 'email.php');
+    if (!$result) {
+        \Cake\Log\Log::write('debug', 'Could not copy email.php file.');
+
+        return false;
+    }
+
+    $file = new \Cake\Filesystem\File(CONFIG . 'email.php');
+    $content = $file->read();
+
+    foreach ($config as $configKey => $configValue) {
+        $content = str_replace('{' . $configKey . '}', $configValue, $content);
+    }
+
+    if (!$file->write($content)) {
+        \Cake\Log\Log::write('debug', 'Could not write email.php file.');
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @see https://github.com/symfony/polyfill-php55/blob/v1.10.0/Php55ArrayColumn.php#L32
+ *
+ * @param array $input
+ * @param $columnKey
+ * @param null $indexKey
+ *
+ * @return array
+ */
+function array_column_polyfill(array $input, $columnKey, $indexKey = null)
+{
+    return array_column($input, $columnKey, $indexKey);
+
+    $output = [];
+    foreach ($input as $row) {
+        $key = $value = null;
+        $keySet = $valueSet = false;
+        if (null !== $indexKey && array_key_exists($indexKey, $row)) {
+            $keySet = true;
+            $key = (string)$row[$indexKey];
+        }
+        if (null === $columnKey) {
+            $valueSet = true;
+            $value = $row;
+        } elseif (\is_array($row) && \array_key_exists($columnKey, $row)) {
+            $valueSet = true;
+            $value = $row[$columnKey];
+        }
+        if ($valueSet) {
+            if ($keySet) {
+                $output[$key] = $value;
+            } else {
+                $output[] = $value;
+            }
+        }
+    }
+
+    return $output;
+}
+
+function menu_display($name, $options = [], $language = false)
+{
+    $request = \Cake\Routing\Router::getRequest();
+    $user_id = $request->getSession()->read('Auth.User.id');
+
+    /**
+     * @var \App\Model\Table\OptionsTable|\App\Model\Entity\Option[]
+     */
+    $optionsTable = \Cake\ORM\TableRegistry::getTableLocator()->get('Options')
+        ->addBehavior('Translate', ['fields' => ['value']]);
+
+    $menu = $optionsTable->findByName($name)->first();
+    $menuItems = json_decode($menu->value);
+
+    $options = array_merge([
+        'ul_class' => '',
+        'li_class' => '',
+        'a_class' => '',
+    ], $options);
+
+    $html = '<ul class="' . h($options['ul_class']) . '">';
+    foreach ($menuItems as $item) {
+        if (($item->visibility === 'all') ||
+            ($user_id && $item->visibility === 'logged') ||
+            (!$user_id && $item->visibility === 'guest')
+        ) {
+            $html .= '<li class="' . h($options['li_class']) . ' ' . h($item->class) . '">' .
+                '<a class="' . h($options['a_class']) . '" href="' . build_main_domain_url($item->link) . '">' .
+                '<span>' . h($item->title) . '</span>' .
+                '</a>' .
+                '</li>';
+        }
+    }
+
+    if ($language) {
+        if (count(get_site_languages(true)) > 1) {
+            $html .= '<li class="dropdown language-selector">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+               aria-expanded="false"><i class="fa fa-language"></i> <span class="caret"></span></a>
+            <ul class="dropdown-menu">';
+            foreach (get_site_languages(true) as $lang) {
+                $html .= '<li>';
+                $html .= '<a href="' . \Cake\Routing\Router::url($request->getPath()) . '?lang=' . $lang . '">' .
+                    locale_get_display_name($lang, $lang) . '</a>';
+
+                $html .= '</li>';
+            }
+            $html .= '</ul>
+        </li>';
+        }
+    }
+
+    $html .= '</ul>';
+
+    return $html;
 }
 
 function get_countries($campaing = false)
@@ -925,6 +1171,7 @@ function get_countries($campaing = false)
         "KI" => __("Kiribati"),
         "KP" => __("Korea, Democratic People's Republic of"),
         "KR" => __("Korea, Republic of"),
+        "XK" => __("Kosovo"),
         "KW" => __("Kuwait"),
         "KG" => __("Kyrgyzstan"),
         "LA" => __("Lao People's Democratic Republic"),
@@ -1052,7 +1299,7 @@ function get_countries($campaing = false)
         "YE" => __("Yemen"),
         "YU" => __("Yugoslavia"),
         "ZM" => __("Zambia"),
-        "ZW" => __("Zimbabwe")
+        "ZW" => __("Zimbabwe"),
     ];
 
     if ($campaing) {

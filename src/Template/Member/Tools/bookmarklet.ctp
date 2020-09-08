@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Bookmarklet'));
 $this->assign('description', '');
 $this->assign('content_title', __('Bookmarklet'));
@@ -7,9 +10,6 @@ $this->assign('content_title', __('Bookmarklet'));
 
 <div class="box box-primary">
     <div class="box-body">
-        <?php if ($notice) : ?>
-            <div class="alert alert-danger" role="alert"><i class="fa fa-exclamation-triangle"></i><?= $notice ?></div>
-        <?php endif; ?>
 
         <p>
             <?= __('Short links more easily. Click and drag the following link to your links toolbar.') ?>
@@ -17,7 +17,7 @@ $this->assign('content_title', __('Bookmarklet'));
 
         <p>
             <a class="btn btn-default"
-               href='javascript:(function () {var a = window, b = document, c = encodeURIComponent, d = a.open("<?= $this->Url->build('/', true); ?>bookmarklet/?api=<?= $user->api_token ?>&url=" + c(b.location), "bookmarklet_popup", "left=" + ((a.screenX || a.screenLeft) + 10) + ",top=" + ((a.screenY || a.screenTop) + 10) + ",height=510px,width=550px,resizable=1,alwaysRaised=1");a.setTimeout(function () {d.focus()}, 300)})()'>
+               href='javascript:(function () {var a = window, b = document, c = encodeURIComponent, d = a.open("<?= $this->Url->build('/', true); ?>bookmarklet/?api=<?= $logged_user->api_token ?>&url=" + c(b.location), "bookmarklet_popup", "left=" + ((a.screenX || a.screenLeft) + 10) + ",top=" + ((a.screenY || a.screenTop) + 10) + ",height=510px,width=550px,resizable=1,alwaysRaised=1");a.setTimeout(function () {d.focus()}, 300)})()'>
                 <?= __("Shorten!") ?>
             </a>
         </p>
@@ -32,5 +32,6 @@ $this->assign('content_title', __('Bookmarklet'));
                 "browsers, you can enable it in the View->Toolbars menu of your web browser. You can also put it in " .
                 "your bookmarks instead of the links toolbar.") ?>
         </p>
+
     </div>
 </div>

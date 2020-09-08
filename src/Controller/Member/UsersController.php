@@ -2,66 +2,26 @@
 
 namespace App\Controller\Member;
 
-use App\Controller\Member\AppMemberController;
 use Cake\Mailer\MailerAwareTrait;
 use Cake\I18n\Time;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 use Cake\Cache\Cache;
 use Cake\Datasource\ConnectionManager;
 
+/**
+ * @property \App\Model\Table\UsersTable $Users
+ * @property \App\Model\Table\AnnouncementsTable $Announcements
+ */
 class UsersController extends AppMemberController
 {
     use MailerAwareTrait;
 
     public function dashboard()
     {
-        $domains_auth_urls = [];
-        $multi_domains = get_all_multi_domains_list();
-        $main_domain = get_option('main_domain', '');
-        unset($multi_domains[$main_domain]);
-
-        if (isset($_SESSION['Auth']['User']['domains_auth']) &&
-            $_SESSION['Auth']['User']['domains_auth'] == 'required' &&
-            count($multi_domains)
-        ) {
-            $data = urlencode(data_encrypt([
-                'session_name' => session_name(),
-                'session_id' => session_id(),
-                'time' => time()
-            ]));
-
-            foreach ($multi_domains as $key => $value) {
-                $domains_auth_urls[] = '//' . $value . $this->request->base . '/auth/users/multidomains-auth' .
-                    '?auth=' . $data;
-            }
-        }
-        $this->set('domains_auth_urls', $domains_auth_urls);
-
         $auth_user_id = $this->Auth->user('id');
 
-        $last_record = $this->Users->Statistics->find()
-            ->select('created')
-            ->where(['user_id' => $auth_user_id])
-            ->order(['created' => 'DESC'])
-            ->first();
-
-        if (!$last_record) {
-            $last_record = Time::now();
-        } else {
-            $last_record = $last_record->created;
-        }
-
-        $first_record = $this->Users->Statistics->find()
-            ->select('created')
-            ->where(['user_id' => $auth_user_id])
-            ->order(['created' => 'ASC'])
-            ->first();
-
-        if (!$first_record) {
-            $first_record = Time::now()->modify('-1 second');
-        } else {
-            $first_record = $first_record->created;
-        }
+        $last_record = Time::now();
+        $first_record = user()->created;
 
         $year_month = [];
 
@@ -77,10 +37,10 @@ class UsersController extends AppMemberController
         $this->set('year_month', $year_month);
 
         $to_month = Time::now()->format('Y-m');
-        if (isset($this->request->query['month']) &&
-            array_key_exists($this->request->query['month'], $year_month)
+        if ($this->getRequest()->getQuery('month') &&
+            array_key_exists($this->getRequest()->getQuery('month'), $year_month)
         ) {
-            $to_month = explode('-', $this->request->query['month']);
+            $to_month = explode('-', $this->getRequest()->getQuery('month'));
             $year = (int)$to_month[0];
             $month = (int)$to_month[1];
         } else {
@@ -91,18 +51,25 @@ class UsersController extends AppMemberController
             $month = (int)$current_time->format('m');
         }
 
-        $date1 = Time::now()->year($year)->month($month)->startOfMonth()->format('Y-m-d H:i:s');
-        $date2 = Time::now()->year($year)->month($month)->endOfMonth()->format('Y-m-d H:i:s');
+        $time_zone = get_option('timezone', 'UTC');
+        $date1 = Time::createFromDate($year, $month, 01, $time_zone)
+            ->startOfMonth()
+            ->i18nFormat('yyyy-MM-dd HH:mm:ss', 'UTC', 'en');
+        $date2 = Time::createFromDate($year, $month, 01, $time_zone)
+            ->endOfMonth()
+            ->i18nFormat('yyyy-MM-dd HH:mm:ss', 'UTC', 'en');
 
         $connection = ConnectionManager::get('default');
 
-        $CurrentMonthDays = Cache::read('currentMonthDays_' . $auth_user_id.'_'.$date1.'_'.$date2, '15min');
+        $time_zone_offset = Time::now($time_zone)->format('P');
+
+        $CurrentMonthDays = Cache::read('currentMonthDays_' . $auth_user_id . '_' . $date1 . '_' . $date2, '15min');
         if ($CurrentMonthDays === false) {
             $sql = "SELECT 
                   CASE
                     WHEN Statistics.publisher_earn > 0
                     THEN
-                      DATE_FORMAT(Statistics.created, '%d-%m-%Y')
+                      DATE_FORMAT(CONVERT_TZ(Statistics.created,'+00:00','" . $time_zone_offset . "'), '%Y-%m-%d')
                   END  AS `day`,
                   CASE
                     WHEN Statistics.publisher_earn > 0
@@ -118,8 +85,7 @@ class UsersController extends AppMemberController
                   statistics Statistics 
                 WHERE 
                   (
-                    Statistics.created BETWEEN :date1 
-                    AND :date2 
+                    Statistics.created BETWEEN :date1 AND :date2 
                     AND Statistics.user_id = {$auth_user_id}
                   ) 
                 GROUP BY 
@@ -131,12 +97,11 @@ class UsersController extends AppMemberController
             $stmt->execute();
             $views_publisher = $stmt->fetchAll('assoc');
 
-
             $sql = "SELECT 
                   CASE
                     WHEN Statistics.referral_earn > 0
                     THEN
-                      DATE_FORMAT(Statistics.created, '%d-%m-%Y')
+                      DATE_FORMAT(CONVERT_TZ(Statistics.created,'+00:00','" . $time_zone_offset . "'), '%Y-%m-%d')
                   END  AS `day`,
                   CASE
                     WHEN Statistics.referral_earn > 0
@@ -147,8 +112,7 @@ class UsersController extends AppMemberController
                   statistics Statistics 
                 WHERE 
                   (
-                    Statistics.created BETWEEN :date1 
-                    AND :date2 
+                    Statistics.created BETWEEN :date1 AND :date2 
                     AND Statistics.referral_id = {$auth_user_id}
                   ) 
                 GROUP BY 
@@ -162,23 +126,23 @@ class UsersController extends AppMemberController
 
             $CurrentMonthDays = [];
 
-            $targetTime = Time::now();
-            $targetTime->year($year)
-                ->month($month)
-                ->day(1);
+            $targetTime = Time::createFromDate($year, $month, 01)->startOfMonth();
 
             for ($i = 1; $i <= $targetTime->format('t'); $i++) {
-                $CurrentMonthDays[$i . "-" . $month . "-" . $year] = [
+                $CurrentMonthDays[$year . "-" . str_pad($month, 2, '0', STR_PAD_LEFT) . "-" .
+                str_pad($i, 2, '0', STR_PAD_LEFT)] = [
                     'view' => 0,
                     'publisher_earnings' => 0,
                     'referral_earnings' => 0,
                 ];
             }
+
             foreach ($views_publisher as $view) {
                 if (!$view['day']) {
                     continue;
                 }
-                $day = Time::now()->modify($view['day'])->format('j-n-Y');
+
+                $day = $view['day'];
                 $CurrentMonthDays[$day]['view'] = $view['count'];
                 $CurrentMonthDays[$day]['publisher_earnings'] = $view['publisher_earnings'];
             }
@@ -187,18 +151,25 @@ class UsersController extends AppMemberController
                 if (!$view['day']) {
                     continue;
                 }
-                $day = Time::now()->modify($view['day'])->format('j-n-Y');
+
+                $day = $view['day'];
                 $CurrentMonthDays[$day]['referral_earnings'] = $view['referral_earnings'];
             }
             unset($view);
 
-            Cache::write('currentMonthDays_'.$auth_user_id.'_'.$date1.'_'.$date2, $CurrentMonthDays, '15min');
+            if ((bool)get_option('cache_member_statistics', 1)) {
+                Cache::write(
+                    'currentMonthDays_' . $auth_user_id . '_' . $date1 . '_' . $date2,
+                    $CurrentMonthDays,
+                    '15min'
+                );
+            }
         }
         $this->set('CurrentMonthDays', $CurrentMonthDays);
 
-        $this->set('total_views', array_sum(array_column($CurrentMonthDays, 'view')));
-        $this->set('total_earnings', array_sum(array_column($CurrentMonthDays, 'publisher_earnings')));
-        $this->set('referral_earnings', array_sum(array_column($CurrentMonthDays, 'referral_earnings')));
+        $this->set('total_views', array_sum(array_column_polyfill($CurrentMonthDays, 'view')));
+        $this->set('total_earnings', array_sum(array_column_polyfill($CurrentMonthDays, 'publisher_earnings')));
+        $this->set('referral_earnings', array_sum(array_column_polyfill($CurrentMonthDays, 'referral_earnings')));
 
         /*
         $popularLinks = Cache::read('popularLinks_' . $this->Auth->user('id').'_'.$date1.'_'.$date2, '15min');
@@ -242,6 +213,9 @@ class UsersController extends AppMemberController
 
     public function referrals()
     {
+        if ((bool)get_option('enable_referrals', 1) === false) {
+            throw new NotFoundException(__('Invalid request'));
+        }
         $query = $this->Users->find()
             ->where(['referred_by' => $this->Auth->user('id')]);
         $referrals = $this->paginate($query);
@@ -253,8 +227,8 @@ class UsersController extends AppMemberController
     {
         $user = $this->Users->find()->contain(['Plans'])->where(['Users.id' => $this->Auth->user('id')])->first();
 
-        if ($this->request->is(['post', 'put'])) {
-            $user = $this->Users->patchEntity($user, $this->request->data);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $user = $this->Users->patchEntity($user, $this->getRequest()->data);
             //debug($user->errors());
             if ($this->Users->save($user)) {
                 if ($this->Auth->user('id') === $user->id) {
@@ -276,7 +250,7 @@ class UsersController extends AppMemberController
     public function plans()
     {
         if ((bool)get_option('enable_premium_membership') === false) {
-            throw new NotFoundException(__('Invalid request'));
+            throw new NotFoundException(__('404 Not Found'));
         }
 
         $user = $this->Users->findById($this->Auth->user('id'))->contain(['Plans'])->first();
@@ -289,10 +263,10 @@ class UsersController extends AppMemberController
     public function payPlan($id = null, $period = null)
     {
         if ((bool)get_option('enable_premium_membership') === false) {
-            throw new NotFoundException(__('Invalid request'));
+            throw new NotFoundException(__('404 Not Found'));
         }
 
-        $this->request->allowMethod(['post']);
+        $this->getRequest()->allowMethod(['post']);
 
         if (!$id || !$period) {
             throw new NotFoundException(__('Invalid request'));
@@ -314,16 +288,21 @@ class UsersController extends AppMemberController
             'type' => 1, //Plan Invoice
             'rel_id' => $plan->id, //Plan Id
             'payment_method' => '',
-            'amount' => $amount,
+            'amount' => price_database_format($amount),
             'data' => serialize([
-                'payment_period' => $period
+                'payment_period' => $period,
             ]),
         ];
 
         $invoice = $this->Users->Invoices->newEntity($data);
 
         if ($this->Users->Invoices->save($invoice)) {
+            if ((bool)get_option('alert_admin_created_invoice', 0)) {
+                $this->getMailer('Notification')->send('newInvoice', [$invoice, $this->logged_user]);
+            }
+
             $this->Flash->success(__('An invoice with id: {0} has been generated.', $invoice->id));
+
             return $this->redirect(['controller' => 'Invoices', 'action' => 'view', $invoice->id]);
         }
     }
@@ -333,12 +312,12 @@ class UsersController extends AppMemberController
         if (!$username && !$key) {
             $user = $this->Users->findById($this->Auth->user('id'))->first();
 
-            if ($this->request->is(['post', 'put'])) {
+            if ($this->getRequest()->is(['post', 'put'])) {
                 $uuid = \Cake\Utility\Text::uuid();
 
                 $user->activation_key = \Cake\Utility\Security::hash($uuid, 'sha1', true);
 
-                $user = $this->Users->patchEntity($user, $this->request->data, ['validate' => 'changEemail']);
+                $user = $this->Users->patchEntity($user, $this->getRequest()->data, ['validate' => 'changEemail']);
 
                 if ($this->Users->save($user)) {
                     // Send rest email
@@ -358,12 +337,13 @@ class UsersController extends AppMemberController
                 ->where([
                     'Users.status' => 1,
                     'Users.username' => $username,
-                    'Users.activation_key' => $key
+                    'Users.activation_key' => $key,
                 ])
                 ->first();
 
             if (!$user) {
                 $this->Flash->error(__('Invalid Activation.'));
+
                 return $this->redirect(['action' => 'changeEmail']);
             }
 
@@ -379,9 +359,11 @@ class UsersController extends AppMemberController
                     $this->Auth->setUser($data);
                 }
                 $this->Flash->success(__('Your email has been confirmed.'));
+
                 return $this->redirect(['action' => 'signin', 'prefix' => 'auth']);
             } else {
                 $this->Flash->error(__('Unable to confirm your email.'));
+
                 return $this->redirect(['action' => 'changeEmail']);
             }
         }
@@ -391,8 +373,8 @@ class UsersController extends AppMemberController
     {
         $user = $this->Users->findById($this->Auth->user('id'))->first();
 
-        if ($this->request->is(['post', 'put'])) {
-            $user = $this->Users->patchEntity($user, $this->request->data, ['validate' => 'changePassword']);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            $user = $this->Users->patchEntity($user, $this->getRequest()->data, ['validate' => 'changePassword']);
             //debug($user->errors());
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('Password has been updated'));

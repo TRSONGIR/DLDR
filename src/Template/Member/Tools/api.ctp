@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Developers API'));
 $this->assign('description', '');
 $this->assign('content_title', __('Developers API'));
@@ -7,14 +10,10 @@ $this->assign('content_title', __('Developers API'));
 <div class="box box-primary">
     <div class="box-body">
 
-        <?php if ($notice) : ?>
-            <div class="alert alert-danger" role="alert"><i class="fa fa-exclamation-triangle"></i><?= $notice ?></div>
-        <?php endif; ?>
-
         <div class="callout callout-success">
             <h4><?= __('Your API token:') ?></h4>
             <p>
-            <pre><?= $user->api_token ?></pre>
+            <pre><?= $logged_user->api_token ?></pre>
             </p>
         </div>
 
@@ -30,7 +29,7 @@ $this->assign('content_title', __('Developers API'));
                 'following:') ?></p>
 
         <div class="well">
-            <?= $this->Url->build('/', true); ?>api?api=<b><?= $user->api_token ?></b>&url=<b><?= urlencode('yourdestinationlink.com') ?></b>&alias=<b>CustomAlias</b>
+            <?= $this->Url->build('/', true); ?>api?api=<b><?= $logged_user->api_token ?></b>&url=<b><?= urlencode('yourdestinationlink.com') ?></b>&alias=<b>CustomAlias</b>
         </div>
 
         <p><?= __('You will get a JSON response like the following') ?></p>
@@ -44,7 +43,7 @@ $this->assign('content_title', __('Developers API'));
                 'output anything.') ?></p>
 
         <div class="well">
-            <?= $this->Url->build('/', true); ?>api?api=<b><?= $user->api_token ?></b>&url=<b><?= urlencode('yourdestinationlink.com') ?></b>&alias=<b>CustomAlias</b>&format=<b>text</b>
+            <?= $this->Url->build('/', true); ?>api?api=<b><?= $logged_user->api_token ?></b>&url=<b><?= urlencode('yourdestinationlink.com') ?></b>&alias=<b>CustomAlias</b>&format=<b>text</b>
         </div>
 
         <?php
@@ -86,7 +85,7 @@ $this->assign('content_title', __('Developers API'));
 
         <div class="well">
             $long_url = urlencode('yourdestinationlink.com');<br>
-            $api_token = '<?= $user->api_token ?>';<br>
+            $api_token = '<?= $logged_user->api_token ?>';<br>
             $api_url = "<?= $this->Url->build('/', true); ?>api?api=<b>{$api_token}</b>&url=<b>{$long_url}</b>&alias=<b>CustomAlias</b>";<br>
             $result = @json_decode(file_get_contents($api_url),TRUE);<br>
             if($result["status"] === 'error') {<br>
@@ -100,7 +99,7 @@ $this->assign('content_title', __('Developers API'));
 
         <div class="well">
             $long_url = urlencode('yourdestinationlink.com');<br>
-            $api_token = '<?= $user->api_token ?>';<br>
+            $api_token = '<?= $logged_user->api_token ?>';<br>
             $api_url = "<?= $this->Url->build('/', true); ?>api?api=<b>{$api_token}</b>&url=<b>{$long_url}</b>&alias=<b>CustomAlias</b>&format=<b>text</b>";<br>
             $result = @file_get_contents($api_url);<br>
             if( $result ){<br>

@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <p><?= __('Hello') ?> <b><?php echo $username; ?></b>,</p>
 
 <p><?= __('Thank you for registering at {0}. Your account is created and must be activated before you can use it.',

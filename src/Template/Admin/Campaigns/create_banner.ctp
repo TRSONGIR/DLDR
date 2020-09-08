@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign $campaign
+ */
 $this->assign('title', __('Create Banner Campaign'));
 $this->assign('description', '');
 $this->assign('content_title', __('Create Banner Campaign'));
@@ -7,12 +11,12 @@ $this->assign('content_title', __('Create Banner Campaign'));
 <div class="box box-primary">
     <div class="box-body">
 
-        <?php if (isset($this->request->query['traffic_source']) &&
-            in_array($this->request->query['traffic_source'], [1, 2, 3])
+        <?php if ($this->request->getQuery('traffic_source') &&
+            in_array($this->request->getQuery('traffic_source'), [1, 2, 3])
         ) : ?>
 
             <?php
-            $traffic_source = $this->request->query['traffic_source'];
+            $traffic_source = $this->request->getQuery('traffic_source');
             $banner_price = get_option('banner_price');
             $countries = get_countries(true);
             $i = 0;
@@ -47,13 +51,13 @@ $this->assign('content_title', __('Create Banner Campaign'));
             ?>
 
             <?=
-            $this->Form->input('default_campaign', [
+            $this->Form->control('default_campaign', [
                 'label' => __('Campaign Type'),
                 'options' => [
                     0 => __('Non-default Campaign'),
-                    1 => __('Default Campaign')
+                    1 => __('Default Campaign'),
                 ],
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
             <span class="help-block">
@@ -61,23 +65,23 @@ $this->assign('content_title', __('Create Banner Campaign'));
             </span>
 
             <?=
-            $this->Form->input('user_id', [
-                'label' => __('User'),
-                'options' => $users,
-                'empty' => __('Choose'),
-                'class' => 'form-control'
+            $this->Form->control('user_id', [
+                'label' => __('User Id'),
+                'class' => 'form-control',
+                'type' => 'text',
+                'default' => user()->id,
             ]);
             ?>
 
             <?=
-            $this->Form->input('name', [
+            $this->Form->control('name', [
                 'label' => __('Campaign Name'),
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
 
             <?=
-            $this->Form->input('status', [
+            $this->Form->control('status', [
                 'label' => __('Status'),
                 'options' => [
                     1 => __('Active'),
@@ -87,41 +91,41 @@ $this->assign('content_title', __('Create Banner Campaign'));
                     5 => __('Under Review'),
                     6 => __('Pending Payment'),
                     7 => __('Invalid Payment'),
-                    8 => __('Refunded')
+                    8 => __('Refunded'),
                 ],
                 'empty' => __('Choose'),
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
 
             <legend><?= __('Banner Details') ?></legend>
 
             <?=
-            $this->Form->input('banner_name', [
+            $this->Form->control('banner_name', [
                 'label' => __('Banner Name'),
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
             <span class="help-block"><?= __('(only for internal use)') ?></span>
 
             <?=
-            $this->Form->input('banner_size', [
+            $this->Form->control('banner_size', [
                 'label' => __('Banner Size'),
                 'options' => [
                     '728x90' => __('Leaderboard - 728x90'),
                     '468x60' => __('Full banner - 468x60'),
-                    '336x280' => __('Large rectangle - 336x280')
+                    '336x280' => __('Large rectangle - 336x280'),
                 ],
                 'empty' => __('Choose'),
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
 
             <?=
-            $this->Form->input('banner_code', [
+            $this->Form->control('banner_code', [
                 'label' => __('Banner Code'),
                 'class' => 'form-control',
-                'type' => 'textarea'
+                'type' => 'textarea',
             ]);
             ?>
             <span class="help-block">
@@ -155,13 +159,13 @@ $this->assign('content_title', __('Create Banner Campaign'));
                             <?= $this->Form->hidden("campaign_items.$i.country", ['value' => $key]); ?>
 
                             <?=
-                            $this->Form->input("campaign_items.$i.purchase", [
+                            $this->Form->control("campaign_items.$i.purchase", [
                                 'label' => false,
                                 'class' => 'form-control',
                                 'type' => 'number',
                                 'data-country' => $key,
                                 'data-advertiser_price' => $value[$traffic_source]['advertiser'],
-                                'data-publisher_price' => $value[$traffic_source]['publisher']
+                                'data-publisher_price' => $value[$traffic_source]['publisher'],
                             ]);
                             ?>
                         </td>
@@ -189,15 +193,15 @@ $this->assign('content_title', __('Create Banner Campaign'));
             <?= $this->Form->create(null, ['type' => 'get']); ?>
 
             <?=
-            $this->Form->input('traffic_source', [
+            $this->Form->control('traffic_source', [
                 'label' => __('Traffic Sources/Devices'),
                 'options' => [
                     '1' => __('Desktop, Mobile and Tablet'),
                     '2' => __('Desktop Only'),
-                    '3' => __('Mobile / Tablet Only')
+                    '3' => __('Mobile / Tablet Only'),
                 ],
                 'empty' => __('Choose'),
-                'class' => 'form-control'
+                'class' => 'form-control',
             ]);
             ?>
 

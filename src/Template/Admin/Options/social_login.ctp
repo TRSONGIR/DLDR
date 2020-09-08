@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Social Login Settings'));
 $this->assign('description', '');
 $this->assign('content_title', __('Social Login Settings'));
@@ -20,7 +23,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Enable Facebook') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_facebook']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_facebook']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         1 => __('Yes'),
@@ -37,7 +40,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('App Id') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_facebook_app_id']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_facebook_app_id']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
@@ -51,7 +54,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('App Secret') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_facebook_app_secret']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_facebook_app_secret']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
@@ -70,7 +73,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Enable Twitter') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_twitter']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_twitter']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         1 => __('Yes'),
@@ -87,7 +90,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Consumer Key (API Key)') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_twitter_api_key']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_twitter_api_key']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
@@ -101,7 +104,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Consumer Secret (API Secret)') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_twitter_api_secret']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_twitter_api_secret']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
@@ -120,7 +123,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Enable Google') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_google']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_google']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         1 => __('Yes'),
@@ -137,7 +140,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Client ID') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_google_client_id']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_google_client_id']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
@@ -151,7 +154,7 @@ $this->assign('content_title', __('Social Login Settings'));
             <div class="col-sm-2"><?= __('Client Secret') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['social_login_google_client_secret']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['social_login_google_client_secret']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',

@@ -21,115 +21,107 @@ class Version450 extends AbstractMigration
         $rows = [
             [
                 'name' => 'counter_start',
-                'value' => 'DOMContentLoaded'
+                'value' => 'DOMContentLoaded',
             ],
             [
                 'name' => 'links_banned_words',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'site_meta_title',
-                'value' => $this->get_option('site_name')
+                'value' => $this->get_option('site_name'),
             ],
             [
                 'name' => 'wallet_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'paypal_withdrawal_enable',
-                'value' => ($this->get_option('paypal_enable') === 'yes') ? 1 : 0
+                'value' => ($this->get_option('paypal_enable') === 'yes') ? 1 : 0,
             ],
             [
                 'name' => 'paypal_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'payza_withdrawal_enable',
-                'value' => ($this->get_option('payza_enable') === 'yes') ? 1 : 0
+                'value' => ($this->get_option('payza_enable') === 'yes') ? 1 : 0,
             ],
             [
                 'name' => 'payza_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
-            ],
-			[
-                'name' => 'zarinpal_withdrawal_enable',
-                'value' => ((bool)$this->get_option('zarinpal_enable')) ? 1 : 0
-            ],
-            [
-                'name' => 'zarinpal_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'skrill_withdrawal_enable',
-                'value' => ((bool)$this->get_option('skrill_enable')) ? 1 : 0
+                'value' => ((bool)$this->get_option('skrill_enable')) ? 1 : 0,
             ],
             [
                 'name' => 'skrill_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'bitcoin_withdrawal_enable',
                 'value' => (
                     $this->get_option('coinbase_enable') === 'yes' ||
                     (bool)$this->get_option('coinpayments_enable')
-                ) ? 1 : 0
+                ) ? 1 : 0,
             ],
             [
                 'name' => 'bitcoin_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'webmoney_withdrawal_enable',
-                'value' => ($this->get_option('webmoney_enable') === 'yes') ? 1 : 0
+                'value' => ($this->get_option('webmoney_enable') === 'yes') ? 1 : 0,
             ],
             [
                 'name' => 'webmoney_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'perfectmoney_withdrawal_enable',
-                'value' => ((bool)$this->get_option('perfectmoney_enable')) ? 1 : 0
+                'value' => ((bool)$this->get_option('perfectmoney_enable')) ? 1 : 0,
             ],
             [
                 'name' => 'perfectmoney_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'payeer_withdrawal_enable',
-                'value' => ((bool)$this->get_option('payeer_enable')) ? 1 : 0
+                'value' => ((bool)$this->get_option('payeer_enable')) ? 1 : 0,
             ],
             [
                 'name' => 'payeer_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'banktransfer_withdrawal_enable',
-                'value' => ($this->get_option('banktransfer_enable') === 'yes') ? 1 : 0
+                'value' => ($this->get_option('banktransfer_enable') === 'yes') ? 1 : 0,
             ],
             [
                 'name' => 'banktransfer_withdrawal_amount',
-                'value' => $minimum_withdrawal_amount
+                'value' => $minimum_withdrawal_amount,
             ],
             [
                 'name' => 'custom_withdrawal_methods',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'member_theme',
-                'value' => 'AdminlteMemberTheme'
+                'value' => 'AdminlteMemberTheme',
             ],
             [
                 'name' => 'member_adminlte_theme_skin',
-                'value' => 'skin-blue'
+                'value' => 'skin-blue',
             ],
             [
                 'name' => 'admin_theme',
-                'value' => 'AdminlteAdminTheme'
+                'value' => 'AdminlteAdminTheme',
             ],
             [
                 'name' => 'admin_adminlte_theme_skin',
-                'value' => 'skin-blue'
-            ]
+                'value' => 'skin-blue',
+            ],
         ];
         $this->table('options')
             ->insert($rows)
@@ -173,13 +165,13 @@ class Version450 extends AbstractMigration
                 'default' => '',
                 'limit' => 255,
                 'null' => false,
-                'after' => 'content'
+                'after' => 'content',
             ])
             ->addColumn('meta_description', 'text', [
                 'default' => null,
                 'limit' => null,
                 'null' => true,
-                'after' => 'meta_title'
+                'after' => 'meta_title',
             ])
             ->update();
 
@@ -188,13 +180,13 @@ class Version450 extends AbstractMigration
                 'default' => '',
                 'limit' => 255,
                 'null' => false,
-                'after' => 'description'
+                'after' => 'description',
             ])
             ->addColumn('meta_description', 'text', [
                 'default' => null,
                 'limit' => null,
                 'null' => true,
-                'after' => 'meta_title'
+                'after' => 'meta_title',
             ])
             ->update();
 
@@ -204,7 +196,7 @@ class Version450 extends AbstractMigration
                 'limit' => null,
                 'null' => false,
                 'signed' => false,
-                'after' => 'enable'
+                'after' => 'enable',
             ])
             ->addIndex(['enable', 'hidden'], ['name' => 'idx_enable_hidden'])
             ->update();
@@ -258,7 +250,7 @@ class Version450 extends AbstractMigration
             "'member_theme'",
             "'member_adminlte_theme_skin'",
             "'admin_theme'",
-            "'admin_adminlte_theme_skin'"
+            "'admin_adminlte_theme_skin'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 

@@ -15,10 +15,10 @@ class ActivationTable extends Table
 
     public function checkLicense()
     {
-        $Options = TableRegistry::get('Options');
+        $Options = TableRegistry::getTableLocator()->get('Options');
 
-        $personal_token = $Options->findOrCreate(['name' => 'personal_token']);
-        $purchase_code = $Options->findOrCreate(['name' => 'purchase_code']);
+        $personal_token = $Options->find()->where(['name' => 'personal_token'])->first();
+        $purchase_code = $Options->find()->where(['name' => 'purchase_code'])->first();
 
         if (empty($personal_token->value) || empty($purchase_code->value)) {
             return false;
@@ -33,32 +33,33 @@ class ActivationTable extends Table
 
     public function validateLicense()
     {
-        if (($result = Cache::read('fa_response_result', '1week')) === false) {
+        $result = Cache::read('license_response_result', '1month');
+
+        if (!is_string($result)) {
+            $result = false;
+        }
+
+        if ($result === false) {
             $personal_token = get_option('personal_token');
             $purchase_code = get_option('purchase_code');
 
             $response = $this->licenseCurlRequest([
                 'personal_token' => $personal_token,
-                'purchase_code' => $purchase_code
-            ]);
-			
-			$response2 = $this->licenseCurlRequestrtl([
-                'personal_token' => $personal_token,
-                'purchase_code' => $purchase_code
+                'purchase_code' => $purchase_code,
             ]);
 
             $result = json_decode($response->body, true);
-			
-			if($response2->body == '1' || $result['result'] == '1'){
-				$result = json_decode('{"result":"1","item":"adlinkfly"}', true);
-			}else{
-				$result = json_decode('{"result":"741257","item":"adlinkfly"}', true);
-			}
 
-            Cache::write('fa_response_result', $result, '1week');
+            $result = data_encrypt($result);
+
+            Cache::write('license_response_result', $result, '1month');
         }
 
-        if (isset($result['result']) && $result['result'] == 1) {
+        if (($result = data_decrypt($result)) === false) {
+            return false;
+        }
+
+        if (isset($result['item']['id']) && $result['item']['id'] == 16887109) {
             return true;
         }
 
@@ -67,18 +68,8 @@ class ActivationTable extends Table
 
     public function licenseCurlRequest($data = [])
     {
-        return curlRequest('http://api.rtlscript.ir/', 'POST', [
-            'username' => trim($data['personal_token']),
-			'order_id' => trim($data['purchase_code']),
-			'domain'   => trim(env('SERVER_NAME'))
-        ]);
-    }
-    public function licenseCurlRequestrtl($data = [])
-    {
-        return curlRequest('http://www.rtl-theme.com/oauth/', 'POST', [
-            'api'      => trim('rtl1414b31fc70a7e630d6a02985f4f9d'),
-			'username' => trim($data['personal_token']),
-			'order_id' => trim($data['purchase_code']),
-			'domain'   => trim(env('SERVER_NAME'))]);
+        return curlRequest('https://api.envato.com/v3/market/buyer/purchase', 'GET', [
+            'code' => trim($data['purchase_code']),
+        ], ['Authorization: Bearer ' . trim($data['personal_token'])]);
     }
 }

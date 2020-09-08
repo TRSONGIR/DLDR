@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
 $this->assign('title', __('Edit Link: {0}', $link->alias));
 $this->assign('description', '');
 $this->assign('content_title', __('Edit Link: {0}', $link->alias));
@@ -12,40 +16,55 @@ $this->assign('content_title', __('Edit Link: {0}', $link->alias));
         <?= $this->Form->hidden('id'); ?>
 
         <?=
-        $this->Form->input('url', [
+        $this->Form->control('url', [
             'label' => __('Long URL'),
             'class' => 'form-control',
             'type' => 'url',
-            'disabled' => ($edit_long_url) ? false : true
+            'disabled' => ((bool)$logged_user_plan->edit_long_url) ? false : true,
         ]);
         ?>
 
         <?=
-        $this->Form->input('title', [
+        $this->Form->control('title', [
             'label' => __('Title'),
             'class' => 'form-control',
-            'type' => 'text'
+            'type' => 'text',
         ]);
         ?>
 
         <?=
-        $this->Form->input('description', [
+        $this->Form->control('description', [
             'label' => __('Description'),
             'class' => 'form-control',
-            'type' => 'textarea'
+            'type' => 'textarea',
         ]);
+        ?>
+
+        <?php if ((bool)$logged_user_plan->link_expiration) {
+            echo $this->Form->control('expiration', [
+                'label' => __('Expiration date'),
+                'class' => 'form-control',
+                'type' => 'datetime',
+                'default' => null,
+                'empty' => true,
+                'value' => null,
+                'minYear' => date('Y'),
+                'maxYear' => date('Y') + 10,
+                'orderYear' => 'asc',
+            ]);
+        }
         ?>
 
         <?php
         $ads_options = get_allowed_ads();
 
         if (count($ads_options) > 1) {
-            echo $this->Form->input('ad_type', [
+            echo $this->Form->control('ad_type', [
                 'label' => __('Advertising Type'),
                 'options' => $ads_options,
                 'default' => get_option('member_default_advert', 1),
                 //'empty'   => __( 'Choose' ),
-                'class' => 'form-control input-sm'
+                'class' => 'form-control input-sm',
             ]);
         } else {
             echo $this->Form->hidden('type', ['value' => get_option('member_default_redirect', 1)]);

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Upgrade'));
 $this->assign('description', '');
 $this->assign('content_title', __('Upgrade'));

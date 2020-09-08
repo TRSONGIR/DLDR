@@ -1,4 +1,9 @@
-<?php $user = $this->request->session()->read('Auth.User'); ?>
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
+<?php $user = $this->request->getSession()->read('Auth.User'); ?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -9,33 +14,27 @@
     <meta name="description" content="<?= h($this->fetch('description')); ?>">
 
     <?= $this->Assets->favicon() ?>
-	
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic"
+          rel="stylesheet">
+
     <?php
     if ((bool)get_option('combine_minify_css_js', false)) {
-        
-		if(locale_get_primary_language(null)=='fa'){
-			echo $this->Assets->css('/build/css/dashboard.min.rtl.css');
-		}
-		else{
-			?>
-        <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet">
-
-			<?php
-			echo $this->Assets->css('/build/css/dashboard.min.css');
-		}
+        echo $this->Assets->css('/build/css/dashboard.min.css?ver=' . APP_VERSION);
     } else {
-        echo $this->Assets->css('/vendor/bootstrap/css/bootstrap.min.css');
-        echo $this->Assets->css('/vendor/font-awesome/css/font-awesome.min.css');
-        echo $this->Assets->css('/vendor/dashboard/css/AdminLTE.min.css');
-        echo $this->Assets->css('/vendor/dashboard/css/skins/skin-blue.min.css');
-        echo $this->Assets->css('/css/app.css');
+        echo $this->Assets->css('/vendor/bootstrap/css/bootstrap.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/font-awesome/css/font-awesome.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/dashboard/css/AdminLTE.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/dashboard/css/skins/_all-skins.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/css/app.css?ver=' . APP_VERSION);
     }
+
     echo $this->fetch('meta');
     echo $this->fetch('css');
     echo $this->fetch('script');
     ?>
 
-    <?= get_option('member_head_code'); ?>
+    <?= get_option('admin_head_code'); ?>
 
     <?= $this->fetch('scriptTop') ?>
 
@@ -46,7 +45,7 @@
     <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="hold-transition <?= get_option('admin_adminlte_theme_skin', 'skin-blue') ?> sidebar-mini">
+<body class="admin-dashboard hold-transition <?= get_option('admin_adminlte_theme_skin', 'skin-blue') ?> sidebar-mini">
 <div class="wrapper">
 
     <!-- Main Header -->
@@ -78,7 +77,7 @@
                             <a href="<?= $this->Url->build([
                                 'controller' => 'Users',
                                 'action' => 'dashboard',
-                                'prefix' => 'member'
+                                'prefix' => 'member',
                             ]); ?>">
                                 <i class="fa fa-dashboard"></i> <?= __('Member Area') ?>
                             </a>
@@ -95,6 +94,7 @@
                                  class="user-image">
                             <!-- hidden-xs hides the username on small devices so only the image appears. -->
                             <span class="hidden-xs"><?= h($user['first_name']); ?></span>
+                            <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
                             <!-- The user image in the menu -->
@@ -113,14 +113,14 @@
                                     <a href="<?= $this->Url->build([
                                         'controller' => 'Users',
                                         'action' => 'profile',
-                                        'prefix' => 'member'
+                                        'prefix' => 'member',
                                     ]); ?>" class="btn btn-default btn-flat"><?= __('Profile') ?></a>
                                 </div>
                                 <div class="pull-right">
                                     <a href="<?= $this->Url->build([
                                         'controller' => 'Users',
                                         'action' => 'logout',
-                                        'prefix' => 'auth'
+                                        'prefix' => 'auth',
                                     ]); ?>" class="btn btn-default btn-flat"><?= __('Log out') ?></a>
                                 </div>
                             </li>
@@ -143,7 +143,7 @@
                     <button class="btn btn-danger" onclick="location.href='<?= $this->Url->build([
                         'controller' => 'Upgrade',
                         'action' => 'index',
-                        'prefix' => 'admin'
+                        'prefix' => 'admin',
                     ]); ?>'"><i class="fa fa-refresh"></i> <?= __('Complete Upgrade Process') ?></button>
                 </div>
             <?php endif; ?>
@@ -154,82 +154,111 @@
                                 class="fa fa-dashboard"></i> <span><?= __('Statistics') ?></span></a></li>
 
                 <li class="treeview">
-                    <a href="#"><i class="fa fa-pie-chart"></i> <span><?= __('Reports') ?></span> <i
-                                class="fa fa-angle-left pull-right"></i></a>
-                    <ul class="treeview-menu">
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Reports',
-                                'action' => 'campaigns'
-                            ]); ?>"><?= __('Campaigns') ?></a></li>
-                    </ul>
-                </li>
-
-                <li class="treeview">
                     <a href="#"><i class="fa fa-link"></i> <span><?= __('Manage Links') ?></span> <i
                                 class="fa fa-angle-left pull-right"></i></a>
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Links',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('All Links') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Links',
-                                'action' => 'hidden'
+                                'action' => 'hidden',
                             ]); ?>"><?= __('Hidden Links') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Links',
-                                'action' => 'inactive'
+                                'action' => 'inactive',
                             ]); ?>"><?= __('Inactive Links') ?></a></li>
                     </ul>
                 </li>
 
+                <?php if (get_option('earning_mode', 'campaign') === 'campaign') : ?>
+                    <li class="treeview">
+                        <a href="#"><i class="fa fa-database"></i> <span><?= __('Campaigns') ?></span> <i
+                                    class="fa fa-angle-left pull-right"></i></a>
+                        <ul class="treeview-menu">
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Campaigns',
+                                    'action' => 'index',
+                                ]); ?>"><?= __('List') ?></a></li>
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Campaigns',
+                                    'action' => 'createInterstitial',
+                                ]); ?>"><?= __('Create Interstitial Campaign') ?></a></li>
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Campaigns',
+                                    'action' => 'createBanner',
+                                ]); ?>"><?= __('Create Banner Campaign') ?></a></li>
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Campaigns',
+                                    'action' => 'createPopup',
+                                ]); ?>"><?= __('Create Popup Campaign') ?></a></li>
+
+                            <li class="treeview">
+                                <a href="#"><?= __('Prices') ?>
+                                    <span class="pull-right-container"><i
+                                                class="fa fa-angle-left pull-right"></i></span>
+                                </a>
+                                <ul class="treeview-menu" style="display: none;">
+                                    <li><a href="<?php echo $this->Url->build([
+                                            'controller' => 'Options',
+                                            'action' => 'interstitial',
+                                            'prefix' => 'admin',
+                                        ]); ?>"><?= __('Interstitial') ?></a></li>
+                                    <li><a href="<?php echo $this->Url->build([
+                                            'controller' => 'Options',
+                                            'action' => 'banner',
+                                            'prefix' => 'admin',
+                                        ]); ?>"><?= __('Banner') ?></a></li>
+                                    <li><a href="<?php echo $this->Url->build([
+                                            'controller' => 'Options',
+                                            'action' => 'popup',
+                                            'prefix' => 'admin',
+                                        ]); ?>"><?= __('Popup') ?></a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                <?php endif; ?>
+
+                <?php if (get_option('earning_mode', 'campaign') === 'simple') : ?>
+                    <li class="treeview">
+                        <a href="#"><i class="fa fa-usd"></i> <span><?= __('Payout Rates') ?></span> <i
+                                    class="fa fa-angle-left pull-right"></i></a>
+                        <ul class="treeview-menu">
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Options',
+                                    'action' => 'payoutInterstitial',
+                                    'prefix' => 'admin',
+                                ]); ?>"><?= __('Interstitial') ?></a></li>
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Options',
+                                    'action' => 'payoutBanner',
+                                    'prefix' => 'admin',
+                                ]); ?>"><?= __('Banner') ?></a></li>
+                            <li><a href="<?php echo $this->Url->build([
+                                    'controller' => 'Options',
+                                    'action' => 'payoutPopup',
+                                    'prefix' => 'admin',
+                                ]); ?>"><?= __('Popup') ?></a></li>
+                        </ul>
+                    </li>
+                <?php endif; ?>
+
                 <li class="treeview">
-                    <a href="#"><i class="fa fa-database"></i> <span><?= __('Campaigns') ?></span> <i
+                    <a href="#"><i class="fa fa-dollar"></i> <span><?= __('Withdraws') ?></span> <i
                                 class="fa fa-angle-left pull-right"></i></a>
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Campaigns',
-                                'action' => 'index'
+                                'controller' => 'Withdraws',
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Campaigns',
-                                'action' => 'createInterstitial'
-                            ]); ?>"><?= __('Create Interstitial Campaign') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Campaigns',
-                                'action' => 'createBanner'
-                            ]); ?>"><?= __('Create Banner Campaign') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Campaigns',
-                                'action' => 'createPopup'
-                            ]); ?>"><?= __('Create Popup Campaign') ?></a></li>
+                                'controller' => 'Withdraws',
+                                'action' => 'export',
+                            ]); ?>"><?= __('Export') ?></a></li>
                     </ul>
                 </li>
-
-                <li class="treeview">
-                    <a href="#"><i class="fa fa-line-chart"></i> <span><?= __('Ads') ?></span> <i
-                                class="fa fa-angle-left pull-right"></i></a>
-                    <ul class="treeview-menu">
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Options',
-                                'action' => 'interstitial',
-                                'prefix' => 'admin'
-                            ]); ?>"><?= __('Interstitial') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Options',
-                                'action' => 'banner',
-                                'prefix' => 'admin'
-                            ]); ?>"><?= __('Banner') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Options',
-                                'action' => 'popup',
-                                'prefix' => 'admin'
-                            ]); ?>"><?= __('Popup') ?></a></li>
-                    </ul>
-                </li>
-
-                <li><a href="<?php echo $this->Url->build(['controller' => 'Withdraws', 'action' => 'index']); ?>"><i
-                                class="fa fa-dollar"></i> <span><?= __('Withdraws') ?></span></a></li>
 
                 <li class="treeview">
                     <a href="#"><i class="fa fa-users"></i> <span><?= __('Users') ?></span> <i
@@ -237,17 +266,27 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'referrals'
+                                'action' => 'referrals',
                             ]); ?>"><?= __('Referrals') ?></a></li>
+                        <li><a href="<?php echo $this->Url->build([
+                                'controller' => 'Users',
+                                'action' => 'export',
+                            ]); ?>"><?= __('Export') ?></a></li>
                     </ul>
+                </li>
+
+                <li>
+                    <a href="<?php echo $this->Url->build(['controller' => 'Reports', 'action' => 'campaigns']); ?>">
+                        <i class="fa fa-pie-chart"></i> <span><?= __('Reports') ?></span>
+                    </a>
                 </li>
 
                 <li class="treeview">
@@ -256,11 +295,11 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Plans',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Plans',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add') ?></a></li>
                     </ul>
                 </li>
@@ -274,11 +313,11 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Posts',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('Posts List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Posts',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add Post') ?></a></li>
                     </ul>
                 </li>
@@ -289,11 +328,11 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Pages',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Pages',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add') ?></a></li>
                     </ul>
                 </li>
@@ -304,11 +343,11 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Testimonials',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Testimonials',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add') ?></a></li>
                     </ul>
                 </li>
@@ -319,12 +358,33 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Announcements',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('List') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Announcements',
-                                'action' => 'add'
+                                'action' => 'add',
                             ]); ?>"><?= __('Add') ?></a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="<?php echo $this->Url->build(['controller' => 'Options', 'action' => 'menu']); ?>">
+                        <i class="fa fa-caret-square-o-down"></i> <span><?= __('Menu Manger') ?></span>
+                    </a>
+                </li>
+
+                <li class="treeview">
+                    <a href="#"><i class="fa fa-exclamation-triangle"></i> <span><?= __('Advanced') ?></span> <i
+                                class="fa fa-angle-left pull-right"></i></a>
+                    <ul class="treeview-menu">
+                        <li><a href="<?php echo $this->Url->build([
+                                'controller' => 'Advanced',
+                                'action' => 'statistics',
+                            ]); ?>"><?= __('Statistics Table') ?></a></li>
+                        <li><a href="<?php echo $this->Url->build([
+                                'controller' => 'Options',
+                                'action' => 'system',
+                            ]); ?>" target="_blank"><?= __('System Info') ?></a></li>
                     </ul>
                 </li>
 
@@ -334,24 +394,28 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Options',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('Settings') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Options',
-                                'action' => 'email'
+                                'action' => 'ads',
+                            ]); ?>"><?= __('Ads') ?></a></li>
+                        <li><a href="<?php echo $this->Url->build([
+                                'controller' => 'Options',
+                                'action' => 'withdraw',
+                            ]); ?>"><?= __('Withdraw') ?></a></li>
+                        <li><a href="<?php echo $this->Url->build([
+                                'controller' => 'Options',
+                                'action' => 'email',
                             ]); ?>"><?= __('Email') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Options',
-                                'action' => 'socialLogin'
+                                'action' => 'socialLogin',
                             ]); ?>"><?= __('Social Login') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Options',
-                                'action' => 'payment'
+                                'action' => 'payment',
                             ]); ?>"><?= __('Payment Methods') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Options',
-                                'action' => 'withdrawal'
-                            ]); ?>"><?= __('Withdrawal Methods') ?></a></li>
                     </ul>
                 </li>
 
@@ -374,13 +438,13 @@
 
         <!-- Main content -->
         <section class="content">
-            <?php if (version_compare(PHP_VERSION, '5.6.0') < 0) : ?>
+
+            <?php if (version_compare(PHP_VERSION, '7.2.0') < 0) : ?>
                 <div class="alert alert-danger" role="alert">
-                    <?= __("AdLinkFly will work only on PHP <b>5.6.0</b> or higher starting from the next " .
-                        "updates so please ask your hosting company to upgrade PHP version for you as soon as " .
-                        "possible.") ?>
+                    <?= __("AdLinkFly will work only on PHP <b>7.2.0</b> or higher starting from the next update so please ask your hosting company to upgrade the PHP version for you as soon as possible.") ?>
                 </div>
             <?php endif; ?>
+
             <?= $this->Flash->render() ?>
             <?= $this->fetch('content') ?>
 
@@ -396,7 +460,7 @@
             <?= __('Version') ?> <?= APP_VERSION ?>
         </div>
         <!-- Default to the left -->
-        <?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?><br>طراحی و برنامه نویسی توسط <a href="http://rtlscript.ir" target="_blank">RTLscript</a>
+        <?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?>
     </footer>
 
     <!-- Add the sidebar's background. This div must be placed
@@ -408,9 +472,9 @@
 
 <?= $this->element('js_vars'); ?>
 
-<?php
-echo $this->Assets->script('/js/ads.js');
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
+<?php
 if ((bool)get_option('combine_minify_css_js', false)) {
     echo $this->Assets->script('/build/js/dashboard.min.js?ver=' . APP_VERSION);
 } else {

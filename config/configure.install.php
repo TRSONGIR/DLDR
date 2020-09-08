@@ -1,4 +1,8 @@
 <?php
+
+use Cake\Database\Connection;
+use Cake\Database\Driver\Mysql;
+
 return [
     'Security' => [
         'salt' => '__SALT__',
@@ -11,8 +15,8 @@ return [
      */
     'Datasources' => [
         'default' => [
-            'className' => 'Cake\Database\Connection',
-            'driver' => 'Cake\Database\Driver\Mysql',
+            'className' => Connection::class,
+            'driver' => Mysql::class,
             'persistent' => false,
             'host' => '{default_host}',
             'port' => '{default_port}',
@@ -47,8 +51,8 @@ return [
          * The test connection is used during the test suite.
          */
         'test' => [
-            'className' => 'Cake\Database\Connection',
-            'driver' => 'Cake\Database\Driver\Mysql',
+            'className' => Connection::class,
+            'driver' => Mysql::class,
             'persistent' => false,
             'host' => 'localhost',
             //'port' => 'non_standard_port_number',

@@ -1,6 +1,6 @@
 <?php
 return [
-    
+
     /**
      * Email configuration.
      *
@@ -35,7 +35,17 @@ return [
             'client' => null,
             'tls' => {email_smtp_tls},
             'url' => env('EMAIL_TRANSPORT_DEFAULT_URL', null),
-        ]
+            'context' => [
+                'ssl' => [ 'verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]
+            ]
+
+        ],
+        'mail2' => [
+            'className' => 'PHPMailerMail'
+        ],
+        'sendmail' => [
+            'className' => 'PHPMailerSendmail'
+        ],
     ],
     /**
      * Email delivery profiles
@@ -58,6 +68,18 @@ return [
             'from' => ['{email_from}' => '{site_name}'],
             //'charset' => 'utf-8',
             //'headerCharset' => 'utf-8',
-        ]
+        ],
+        'mail2' => [
+            'transport' => 'mail2',
+            'from' => ['{email_from}' => '{site_name}'],
+            //'charset' => 'utf-8',
+            //'headerCharset' => 'utf-8',
+        ],
+        'sendmail' => [
+            'transport' => 'sendmail',
+            'from' => ['{email_from}' => '{site_name}'],
+            //'charset' => 'utf-8',
+            //'headerCharset' => 'utf-8',
+        ],
     ],
 ];

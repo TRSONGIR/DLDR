@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign $campaign
+ */
 $this->assign('title', __('Edit Campaign'));
 $this->assign('description', '');
 $this->assign('content_title', __('Edit Campaign'));
@@ -16,7 +20,7 @@ $countries = get_countries(true);
         <?= $this->Form->create($campaign, ['id' => 'campaign-create']); ?>
 
         <?=
-        $this->Form->input('default_campaign', [
+        $this->Form->control('default_campaign', [
             'label' => __('Campaign Type'),
             'options' => [
                 0 => __('Non-default Campaign'),
@@ -30,23 +34,22 @@ $countries = get_countries(true);
         </span>
 
         <?=
-        $this->Form->input('user_id', [
-            'label' => __('User'),
-            'options' => $users,
-            'empty' => __('Choose'),
-            'class' => 'form-control'
+        $this->Form->control('user_id', [
+            'label' => __('User Id'),
+            'class' => 'form-control',
+            'type' => 'text'
         ]);
         ?>
 
         <?=
-        $this->Form->input('name', [
+        $this->Form->control('name', [
             'label' => __('Campaign Name'),
             'class' => 'form-control'
         ]);
         ?>
 
         <?=
-        $this->Form->input('status', [
+        $this->Form->control('status', [
             'label' => __('Status'),
             'options' => [
                 1 => __('Active'),
@@ -67,14 +70,14 @@ $countries = get_countries(true);
             <legend><?= __('Website Details') ?></legend>
 
             <?=
-            $this->Form->input('website_title', [
+            $this->Form->control('website_title', [
                 'label' => __('Website Title'),
                 'class' => 'form-control'
             ]);
             ?>
 
             <?=
-            $this->Form->input('website_url', [
+            $this->Form->control('website_url', [
                 'label' => __('Website URL'),
                 'class' => 'form-control',
                 'type' => 'url'
@@ -87,7 +90,7 @@ $countries = get_countries(true);
             <legend><?= __('Banner Details') ?></legend>
 
             <?=
-            $this->Form->input('banner_name', [
+            $this->Form->control('banner_name', [
                 'label' => __('Banner Name'),
                 'class' => 'form-control'
             ]);
@@ -95,7 +98,7 @@ $countries = get_countries(true);
             <span class="help-block"><?= __('(only for internal use)') ?></span>
 
             <?=
-            $this->Form->input('banner_size', [
+            $this->Form->control('banner_size', [
                 'label' => __('Banner Size'),
                 'options' => [
                     '728x90' => __('Leaderboard - 728x90'),
@@ -108,7 +111,7 @@ $countries = get_countries(true);
             ?>
 
             <?=
-            $this->Form->input('banner_code', [
+            $this->Form->control('banner_code', [
                 'label' => __('Banner Code'),
                 'class' => 'form-control',
                 'type' => 'textarea'
@@ -143,7 +146,7 @@ $countries = get_countries(true);
                     </td>
                     <td>
                         <?=
-                        $this->Form->input("campaign_items.$key.publisher_price", [
+                        $this->Form->control("campaign_items.$key.publisher_price", [
                             'label' => false,
                             'class' => 'form-control',
                             'type' => 'number'
@@ -158,7 +161,7 @@ $countries = get_countries(true);
         </table>
 
         <?=
-        $this->Form->input('traffic_source', [
+        $this->Form->control('traffic_source', [
             'label' => __('Traffic Sources'),
             'options' => [
                 '1' => __('Desktop and Mobile'),

@@ -2,8 +2,9 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Member\AppAdminController;
-
+/**
+ * @property \Cake\ORM\Table $CampaignCountries
+ */
 class CampaignCountriesController extends AppAdminController
 {
 }

@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -31,37 +36,18 @@
             }
 
             ?>
-            <a class="navbar-brand <?= $class ?>" href="<?= $this->Url->build('/'); ?>"><?= $logo['content'] ?></a>
+            <a class="navbar-brand <?= $class ?>" href="<?= build_main_domain_url('/'); ?>"><?= $logo['content'] ?></a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <?php if (get_option('enable_advertising', 'yes') == 'yes') : ?>
-                    <li>
-                        <a href="<?= $this->Url->build('/advertising-rates'); ?>"><?= __('Advertising') ?></a>
-                    </li>
-                <?php endif; ?>
-                <li>
-                    <a href="<?= $this->Url->build('/payout-rates'); ?>"><?= __('Payout Rates') ?></a>
-                </li>
-                <?php if (count(get_site_languages(true)) > 1) : ?>
-                    <li class="dropdown language-selector">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                           aria-expanded="false"><i class="fa fa-language"></i> <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach (get_site_languages(true) as $lang) : ?>
-                                <li>
-                                    <?= $this->Html->link(
-                                        locale_get_display_name($lang, $lang),
-                                        '/' . $this->request->url . '?lang=' . $lang
-                                    ); ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                <?php endif; ?>
-            </ul>
+            <?=
+            menu_display('menu_short', [
+                'ul_class' => 'nav navbar-nav navbar-right',
+                'li_class' => '',
+                'a_class' => '',
+            ], true);
+            ?>
         </div>
         <!-- /.navbar-collapse -->
     </div>

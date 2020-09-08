@@ -3,7 +3,7 @@
 namespace App\Controller\Component;
 
 use Cake\Controller\Component;
-use Exception;
+use Securimage;
 
 class CaptchaComponent extends Component
 {
@@ -23,69 +23,76 @@ class CaptchaComponent extends Component
             return $this->solvemediaVerify($post_data);
         }
 
+        if ($captcha_type == 'securimage') {
+            return $this->securimageVerify($post_data);
+        }
+
         return false;
+    }
+
+    public function securimageVerify($post_data = [])
+    {
+        $securimage = new Securimage(['namespace' => $post_data['captcha_namespace']]);
+
+        return (bool)$securimage->check($post_data['captcha_code']);
     }
 
     public function recaptchaVerify($post_data = [])
     {
         $recaptchaSecretKey = get_option('reCAPTCHA_secret_key');
-        if (empty($recaptchaSecretKey)) {
-            throw new Exception(__("You must set your Recaptcha secret key!"));
-        }
 
         if (!isset($post_data['g-recaptcha-response'])) {
+            $this->errorVerify($post_data);
+
             return false;
         }
 
-        $data = array(
+        $data = [
             'secret' => $recaptchaSecretKey,
             'response' => $post_data['g-recaptcha-response'],
-        );
+        ];
 
-        $result = curlRequest('https://www.google.com/recaptcha/api/siteverify', 'POST', $data);
+        $result = curlRequest('https://www.recaptcha.net/recaptcha/api/siteverify', 'POST', $data);
         $responseData = json_decode($result->body, true);
 
-        if ($responseData['success'] == false) {
-            //$recaptchaError = '';
-            //foreach ($responseData['error-codes'] as $code) {
-            //    $recaptchaError .= $code . ' ';
-            //}
+        if ($responseData['success']) {
+            $this->successVerify($post_data);
 
-            //$this->error = $recaptchaError;
+            return true;
         }
 
-        return $responseData['success'];
+        $this->errorVerify($post_data);
+
+        return false;
     }
 
     public function invisibleRecaptchaVerify($post_data = [])
     {
         $recaptchaSecretKey = get_option('invisible_reCAPTCHA_secret_key');
-        if (empty($recaptchaSecretKey)) {
-            throw new Exception(__("You must set your Invisible Recaptcha secret key!"));
-        }
 
         if (!isset($post_data['g-recaptcha-response'])) {
+            $this->errorVerify($post_data);
+
             return false;
         }
 
-        $data = array(
+        $data = [
             'secret' => $recaptchaSecretKey,
             'response' => $post_data['g-recaptcha-response'],
-        );
+        ];
 
-        $result = curlRequest('https://www.google.com/recaptcha/api/siteverify', 'POST', $data);
+        $result = curlRequest('https://www.recaptcha.net/recaptcha/api/siteverify', 'POST', $data);
         $responseData = json_decode($result->body, true);
 
-        if ($responseData['success'] == false) {
-            //$recaptchaError = '';
-            //foreach ($responseData['error-codes'] as $code) {
-            //    $recaptchaError .= $code . ' ';
-            //}
+        if ($responseData['success']) {
+            $this->successVerify($post_data);
 
-            //$this->error = $recaptchaError;
+            return true;
         }
 
-        return $responseData['success'];
+        $this->errorVerify($post_data);
+
+        return false;
     }
 
     public function solvemediaVerify($post_data = [])
@@ -94,15 +101,17 @@ class CaptchaComponent extends Component
         $solvemedia_authentication_key = get_option('solvemedia_authentication_key');
 
         if (!isset($post_data['adcopy_challenge']) || !isset($post_data['adcopy_response'])) {
+            $this->errorVerify($post_data);
+
             return false;
         }
 
-        $data = array(
+        $data = [
             'privatekey' => $solvemedia_verification_key,
             'challenge' => $post_data['adcopy_challenge'],
             'response' => $post_data['adcopy_response'],
-            'remoteip' => get_ip()
-        );
+            'remoteip' => get_ip(),
+        ];
 
         $result = curlRequest('http://verify.solvemedia.com/papi/verify', 'POST', $data);
         $answers = explode("\n", $result->body);
@@ -110,13 +119,48 @@ class CaptchaComponent extends Component
         $hash = sha1($answers[0] . $post_data['adcopy_challenge'] . $solvemedia_authentication_key);
 
         if ($hash !== $answers[2]) {
+            $this->errorVerify($post_data);
+
             return false;
         }
 
         if (trim($answers[0]) == 'true') {
+            $this->successVerify($post_data);
+
             return true;
         }
 
+        $this->errorVerify($post_data);
+
         return false;
+    }
+
+    public function successVerify($post_data)
+    {
+        $this->onetimeCaptcha($post_data);
+    }
+
+    public function errorVerify($post_data)
+    {
+    }
+
+    public function onetimeCaptcha($post_data)
+    {
+        if (!isset($_SESSION['Auth']['User']['plan']['onetime_captcha'])) {
+            return;
+        }
+
+        if (!$_SESSION['Auth']['User']['plan']['onetime_captcha']) {
+            return;
+        }
+
+        if (empty($post_data['f_n'])) {
+            return;
+        }
+
+        if ($post_data['f_n'] === 'slc') {
+            $salt = \Cake\Utility\Security::salt();
+            $_SESSION['onetime_captcha'] = sha1($salt . get_ip() . $_SERVER['HTTP_USER_AGENT']);
+        }
     }
 }

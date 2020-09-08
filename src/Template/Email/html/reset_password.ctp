@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <p><?= __('Hello') ?> <b><?php echo $username; ?></b>,</p>
 
 <p><?= __('Someone requested that the password be reset for the following account:') ?></p>

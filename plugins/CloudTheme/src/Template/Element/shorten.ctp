@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <?=
 $this->Form->create(null, [
     'url' => ['controller' => 'Links', 'action' => 'shorten', 'prefix' => false],
@@ -8,7 +13,7 @@ $this->Form->create(null, [
 ?>
 
 <?php
-$this->Form->templates([
+$this->Form->setTemplates([
     'inputContainer' => '{{content}}',
     'error' => '{{content}}',
     'inputContainerError' => '{{content}}'
@@ -17,7 +22,7 @@ $this->Form->templates([
 ?>
 <div class="form-group">
     <?=
-    $this->Form->input('url', [
+    $this->Form->control('url', [
         'label' => false,
         'type' => 'text',
         'placeholder' => __('Your URL Here'),
@@ -30,7 +35,7 @@ $this->Form->templates([
     <?php
     $ad_type = get_option('anonymous_default_advert', 1);
 
-    if (null !== $this->request->session()->read('Auth.User.id')) {
+    if (null !== $this->request->getSession()->read('Auth.User.id')) {
         $ad_type = get_option('member_default_advert', 1);
     }
 
@@ -38,14 +43,14 @@ $this->Form->templates([
 
     <?= $this->Form->hidden('ad_type', ['value' => $ad_type]); ?>
 
-    <?= $this->Form->button($this->Html->image('right-arrow.png'), [
+    <?= $this->Form->button($this->Assets->image('right-arrow.png'), [
         'class' => 'btn-captcha',
         'id' => 'invisibleCaptchaShort'
     ]); ?>
 </div>
 
 <?php
-if (!$this->request->session()->read('Auth.User.id') &&
+if (!$this->request->getSession()->read('Auth.User.id') &&
     (bool)get_option('enable_captcha_shortlink_anonymous', false) &&
     isset_captcha()
 ) : ?>
@@ -56,6 +61,8 @@ if (!$this->request->session()->read('Auth.User.id') &&
     $this->Form->unlockField('g-recaptcha-response');
     $this->Form->unlockField('adcopy_challenge');
     $this->Form->unlockField('adcopy_response');
+    $this->Form->unlockField('captcha_namespace');
+    $this->Form->unlockField('captcha_code');
     ?>
 <?php endif; ?>
 

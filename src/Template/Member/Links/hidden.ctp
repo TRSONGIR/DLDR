@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link[]|\Cake\Collection\CollectionInterface $links
+ */
 $this->assign('title', __('Manage Links'));
 $this->assign('description', '');
 $this->assign('content_title', __('Manage Links'));
@@ -18,7 +22,7 @@ $this->assign('content_title', __('Manage Links'));
         ?>
 
         <?=
-        $this->Form->input('Filter.id', [
+        $this->Form->control('Filter.id', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
@@ -28,7 +32,7 @@ $this->assign('content_title', __('Manage Links'));
         ?>
 
         <?=
-        $this->Form->input('Filter.alias', [
+        $this->Form->control('Filter.alias', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
@@ -38,7 +42,7 @@ $this->assign('content_title', __('Manage Links'));
         ?>
 
         <?=
-        $this->Form->input('Filter.title_desc', [
+        $this->Form->control('Filter.title_desc', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',

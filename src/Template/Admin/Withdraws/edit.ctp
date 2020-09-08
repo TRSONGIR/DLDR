@@ -1,8 +1,11 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Withdraw $withdraw
+ */
 $this->assign('title', __('Withdraw #{0}', $withdraw->id));
 $this->assign('description', '');
 $this->assign('content_title', __('Withdraw #{0}', $withdraw->id));
-
 ?>
 
 <div class="box box-primary">
@@ -21,18 +24,18 @@ $this->assign('content_title', __('Withdraw #{0}', $withdraw->id));
                     <?= $this->Form->hidden('id'); ?>
 
                     <?=
-                    $this->Form->input('status', [
+                    $this->Form->control('status', [
                         'label' => false,
                         'options' => [
                             2 => __('Pending'),
                             1 => __('Approved'),
                             3 => __('Complete'),
-                            4 => __('Cancelled')
+                            4 => __('Cancelled'),
+                            5 => __('Returned')
                         ],
                         'empty' => __('Choose'),
                         'class' => 'form-control'
                     ]);
-
                     ?>
 
                 </td>

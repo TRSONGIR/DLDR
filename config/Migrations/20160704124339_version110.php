@@ -12,20 +12,20 @@ class Version110 extends AbstractMigration
 
         $options = $this->table('options');
 
-        $rows = array(
-            array(
+        $rows = [
+            [
                 'name' => 'app_version',
-                'value' => APP_VERSION
-            ),
-            array(
+                'value' => APP_VERSION,
+            ],
+            [
                 'name' => 'counter_value',
-                'value' => '5'
-            ),
-            array(
+                'value' => '5',
+            ],
+            [
                 'name' => 'mass_shrinker_limit',
-                'value' => '20'
-            )
-        );
+                'value' => '20',
+            ],
+        ];
 
         $options->insert($rows);
         $options->saveData();
@@ -37,7 +37,7 @@ class Version110 extends AbstractMigration
 
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
-        $items = implode(",", array("'app_version'", "'counter_value'", "'mass_shrinker_limit'"));
+        $items = implode(",", ["'app_version'", "'counter_value'", "'mass_shrinker_limit'"]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
     }
 }

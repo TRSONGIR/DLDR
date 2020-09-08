@@ -1,8 +1,11 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Statistic $first_statistic
+ */
 $this->assign('title', __('Campaigns Report'));
 $this->assign('description', '');
 $this->assign('content_title', __('Campaigns Report'));
-
 ?>
 
 <div class="box box-primary">
@@ -14,83 +17,71 @@ $this->assign('content_title', __('Campaigns Report'));
         echo $this->Form->create(null, [
             'url' => $base_url,
             'type' => 'get',
-            'class' => 'form-inline'
+            'class' => 'form-inline',
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.user_id', [
+        $this->Form->control('Filter.user_id', [
             'label' => false,
-            'options' => $users,
-            'value' => (int)(isset($this->request->query['Filter']['user_id'])) ? $this->request->query['Filter']['user_id'] : '',
-            'empty' => __('Select User'),
-            'class' => 'form-control'
-        ]);
-
-        ?>
-
-        <?=
-        $this->Form->input('Filter.campaign_id', [
-            'label' => false,
-            'options' => $campaigns,
-            'value' => (int)(isset($this->request->query['Filter']['campaign_id'])) ? $this->request->query['Filter']['campaign_id'] : '',
-            'empty' => __('Select Campaign'),
-            'class' => 'form-control'
-        ]);
-
-        ?>
-
-
-        <?php
-        /*
-        echo $this->Form->input('date_from', [
-            'type' => 'date',
-            'placeholder' => __('From'),
-            //'minYear' => date('Y') - 3,
-            'maxYear' => date('Y'),
-            'year' => [
-                'class' => 'form-control',
-            ],
-            'month' => [
-                'class' => 'form-control'
-            ],
-            'day' => [
-                'class' => 'form-control'
-            ],
-        ]);
-        */
-        ?>
-
-        <?php
-        /*
-        echo $this->Form->input('date_to', [
-            'type' => 'date',
-            'placeholder' => __('To'),
-            //'minYear' => date('Y') - 3,
-            'maxYear' => date('Y'),
-            'year' => [
-                'class' => 'form-control',
-            ],
-            'month' => [
-                'class' => 'form-control'
-            ],
-            'day' => [
-                'class' => 'form-control'
-            ],
-        ]);
-        */
-        ?>
-
-
-        <?php
-        /*
-        echo $this->Form->input('Filter.title_desc', [
-            'label' => false,
+            'placeholder' => __('User Id'),
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('Title, Desc. or URL')
-            ]);
-        */
+            'value' => $this->request->getQuery('Filter.user_id', ''),
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('Filter.campaign_id', [
+            'label' => false,
+            'placeholder' => __('Campaign Id'),
+            'class' => 'form-control',
+            'type' => 'text',
+            'value' => $this->request->getQuery('Filter.campaign_id', ''),
+        ]);
+        ?>
+
+        <?php
+        ?>
+
+        <?=
+        $this->Form->control('Filter.date_from', [
+            'type' => 'date',
+            'placeholder' => __('From'),
+            'minYear' => $first_statistic->created->year,
+            'maxYear' => date('Y'),
+            'year' => [
+                'class' => 'form-control',
+            ],
+            'month' => [
+                'class' => 'form-control',
+            ],
+            'day' => [
+                'class' => 'form-control',
+            ],
+            'empty' => true,
+            'value' => $this->request->getQuery('Filter.date_from', ''),
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('Filter.date_to', [
+            'type' => 'date',
+            'placeholder' => __('To'),
+            'minYear' => $first_statistic->created->year,
+            'maxYear' => date('Y'),
+            'year' => [
+                'class' => 'form-control',
+            ],
+            'month' => [
+                'class' => 'form-control',
+            ],
+            'day' => [
+                'class' => 'form-control',
+            ],
+            'empty' => true,
+            'value' => $this->request->getQuery('Filter.date_to', ''),
+        ]);
         ?>
 
         <?= $this->Form->button(__('Filter'), ['class' => 'btn btn-default btn-sm']); ?>
@@ -112,7 +103,7 @@ $reasons = get_statistics_reasons();
         <h3 class="box-title"><?= __("Campaign Clicks Details") ?></h3>
     </div>
     <div class="box-body">
-        <?php if (isset($campaign_earnings) && count($campaign_earnings) > 0) : ?>
+        <?php if (isset($campaign_earnings)) : ?>
             <table class="table table-hover table-striped">
                 <thead>
                 <tr>
@@ -147,7 +138,7 @@ $reasons = get_statistics_reasons();
                 <h3 class="box-title"><?= __("Countries") ?></h3>
             </div>
             <div class="box-body" style="height: 300px; overflow: auto;">
-                <?php if (isset($campaign_countries) && count($campaign_countries)) : ?>
+                <?php if (isset($campaign_countries)) : ?>
                     <table class="table table-hover table-striped">
                         <thead>
                         <tr>
@@ -179,7 +170,7 @@ $reasons = get_statistics_reasons();
                 <h3 class="box-title"><?= __("Referers") ?></h3>
             </div>
             <div class="box-body" style="height: 300px; overflow: auto;">
-                <?php if (isset($campaign_referers) && count($campaign_referers)) : ?>
+                <?php if (isset($campaign_referers)) : ?>
                     <table class="table table-hover table-striped">
                         <thead>
                         <tr>

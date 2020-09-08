@@ -5,6 +5,22 @@ namespace App\Model\Table;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
+/**
+ * @property \App\Model\Table\UsersTable&\Cake\ORM\Association\BelongsTo $Users
+ * @property \App\Model\Table\StatisticsTable&\Cake\ORM\Association\HasMany $Statistics
+ *
+ * @method \Cake\ORM\Query findById($id)
+ * @method \Cake\ORM\Query findByAlias($alias)
+ * @method \App\Model\Entity\Link get($primaryKey, $options = [])
+ * @method \App\Model\Entity\Link newEntity($data = null, array $options = [])
+ * @method \App\Model\Entity\Link[] newEntities(array $data, array $options = [])
+ * @method \App\Model\Entity\Link|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \App\Model\Entity\Link saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
+ * @method \App\Model\Entity\Link patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
+ * @method \App\Model\Entity\Link[] patchEntities($entities, array $data, array $options = [])
+ * @method \App\Model\Entity\Link findOrCreate($search, callable $callback = null, $options = [])
+ * @mixin \Cake\ORM\Behavior\TimestampBehavior
+ */
 class LinksTable extends Table
 {
     public function initialize(array $config)
@@ -17,14 +33,24 @@ class LinksTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->notEmpty('url', 'Please add a URL.')
+            ->notBlank('url', 'Please add a URL.')
             ->add('url', 'checkUrl', [
                 'rule' => function ($value, $context) {
                     $url_parts = parse_url($value);
 
-                    if ($url_parts['scheme'] == 'magnet') {
+                    $scheme = $url_parts['scheme'];
+                    if ($scheme == 'magnet') {
                         return true;
                     }
+
+                    /*
+                    $host = $url_parts['host'];
+                    if (!mb_check_encoding($host, 'ASCII')) {
+                        $host = idn_to_ascii($host);
+                    }
+
+                    return (bool)filter_var($scheme . '://' . $host, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED);
+                    */
 
                     if (\Cake\Validation\Validation::url($value)) {
                         return true;
@@ -33,7 +59,7 @@ class LinksTable extends Table
                     return false;
                 },
                 'last' => true,
-                'message' => __('URL is invalid.')
+                'message' => __('URL is invalid.'),
             ])
             ->add('url', 'checkProtocol', [
                 'rule' => function ($value, $context) {
@@ -42,10 +68,11 @@ class LinksTable extends Table
                     if (in_array($scheme, ['http', 'https', 'magnet'])) {
                         return true;
                     }
+
                     return false;
                 },
                 'last' => true,
-                'message' => __('http, https and magnet urls only allowed.')
+                'message' => __('http, https and magnet urls only allowed.'),
             ])
             /*
             ->add('url', 'uniqueURL', [
@@ -79,6 +106,7 @@ class LinksTable extends Table
                 'rule' => function ($value, $context) {
                     $disallowed_domains = explode(',', get_option('disallowed_domains'));
                     $disallowed_domains = array_map('trim', $disallowed_domains);
+                    $disallowed_domains = array_map('strtolower', $disallowed_domains);
                     $disallowed_domains = array_filter($disallowed_domains);
                     $disallowed_domains = array_merge($disallowed_domains, array_values(get_all_domains_list()));
 
@@ -86,15 +114,35 @@ class LinksTable extends Table
                         return true;
                     }
 
-                    $url_main_domain = parse_url($value, PHP_URL_HOST);
+                    $url_main_domain = strtolower(parse_url($value, PHP_URL_HOST));
 
-                    if (in_array(strtolower($url_main_domain), $disallowed_domains)) {
+                    if (in_array($url_main_domain, $disallowed_domains)) {
                         return false;
                     }
+
+                    $disallowed_domains = array_filter($disallowed_domains, function ($value) {
+                        return substr($value, 0, 2) === "*.";
+                    });
+
+                    if (empty($disallowed_domains)) {
+                        return true;
+                    }
+
+                    $disallowed_domains = array_map(function ($value) {
+                        return substr($value, 1);
+                    }, $disallowed_domains);
+
+                    foreach ($disallowed_domains as $disallowed_domain) {
+                        if (preg_match("/" . preg_quote($disallowed_domain, '/') . "$/", $url_main_domain)) {
+                            return false;
+                            break;
+                        }
+                    }
+
                     return true;
                 },
                 'last' => true,
-                'message' => __('This domain is not allowed on our system.')
+                'message' => __('This domain is not allowed on our system.'),
             ])
             ->add('url', 'checkGoogleSafeUrl', [
                 'rule' => function ($value, $context) {
@@ -127,7 +175,7 @@ class LinksTable extends Table
 
                     $options = [
                         CURLOPT_CONNECTTIMEOUT => 15,
-                        CURLOPT_TIMEOUT => 15
+                        CURLOPT_TIMEOUT => 15,
                     ];
 
                     $result = @json_decode(curlRequest($url, $method, $data, $headers, $options)->body, true);
@@ -135,10 +183,11 @@ class LinksTable extends Table
                     if (isset($result['matches'])) {
                         return false;
                     }
+
                     return true;
                 },
                 'last' => true,
-                'message' => __("Google currently report this URL as an active phishing, malware, or unwanted website.")
+                'message' => __("Google currently report this URL as an active phishing, malware, or unwanted website."),
             ])
             ->add('url', 'checkPhishtankSafeUrl', [
                 'rule' => function ($value, $context) {
@@ -155,38 +204,38 @@ class LinksTable extends Table
                     $data = [
                         'url' => $value,
                         'format' => 'json',
-                        'app_key' => $phishtank_key
+                        'app_key' => $phishtank_key,
                     ];
 
                     $options = [
                         CURLOPT_CONNECTTIMEOUT => 15,
-                        CURLOPT_TIMEOUT => 15
+                        CURLOPT_TIMEOUT => 15,
                     ];
 
                     $result = @json_decode(curlRequest($url, $method, $data, [], $options)->body, true);
 
-                    if (isset($result['results']['in_database']) && $result['results']['in_database'] === true) {
+                    if (isset($result['results']['valid']) && $result['results']['valid'] === true) {
                         return false;
                     }
 
                     return true;
                 },
                 'last' => true,
-                'message' => __("PhishTank currently report this URL as an active phishing website.")
+                'message' => __("PhishTank currently report this URL as an active phishing website."),
             ])
             ->requirePresence('alias', 'create')
-            ->notEmpty('alias', __('Please add an alias.'))
+            ->notBlank('alias', __('Please add an alias.'))
             ->add('alias', 'maxLength', [
                 'rule' => ['maxLength', 30],
                 'last' => true,
-                'message' => __('Maximum alias length is 30 characters.')
+                'message' => __('Maximum alias length is 30 characters.'),
             ])
             ->add('alias', 'alphaNumericDashUnderscore', [
                 'rule' => function ($value, $context) {
-                    return (bool)preg_match('|^[0-9a-zA-Z]*$|', $value);
+                    return (bool)preg_match('|^[0-9a-zA-Z_-]*$|', $value);
                 },
                 'last' => true,
-                'message' => __('Alias should be a alpha numeric value')
+                'message' => __('Alias can only contain letters, numbers, dash and underscore'),
             ])
             ->add('alias', 'checkReserved', [
                 'rule' => function ($value, $context) {
@@ -201,18 +250,19 @@ class LinksTable extends Table
                     if (in_array(strtolower($value), $reserved_aliases)) {
                         return false;
                     }
+
                     return true;
                 },
                 'last' => true,
-                'message' => __('This alias is a reserved word.')
+                'message' => __('This alias is a reserved word.'),
             ])
             ->add('alias', 'unique', [
                 'rule' => 'validateUnique',
                 'provider' => 'table',
                 'last' => true,
-                'message' => __('Alias already exists.')
+                'message' => __('Alias already exists.'),
             ])
-            ->allowEmpty('title')
+            ->allowEmptyString('title')
             ->add('title', 'checkBannedWords', [
                 'rule' => function ($value, $context) {
                     $banned_words = explode(',', get_option('links_banned_words'));
@@ -226,12 +276,13 @@ class LinksTable extends Table
                     if ($this->striposArray($value, $banned_words) !== false) {
                         return false;
                     }
+
                     return true;
                 },
                 'last' => false,
-                'message' => __("This link contains banned words.")
+                'message' => __("This link contains banned words."),
             ])
-            ->allowEmpty('description')
+            ->allowEmptyString('description')
             ->add('description', 'checkBannedWords', [
                 'rule' => function ($value, $context) {
                     $banned_words = explode(',', get_option('links_banned_words'));
@@ -245,15 +296,16 @@ class LinksTable extends Table
                     if ($this->striposArray($value, $banned_words) !== false) {
                         return false;
                     }
+
                     return true;
                 },
                 'last' => true,
-                'message' => __("This link contains banned words.")
+                'message' => __("This link contains banned words."),
             ])
             ->add('ad_type', 'inList', [
-                'rule' => ['inList', [0, 1, 2]],
+                'rule' => ['inList', array_keys(get_allowed_ads())],
                 'last' => true,
-                'message' => __('Choose a valid value.')
+                'message' => __('Choose a valid advertising type.'),
             ]);
 
         return $validator;
@@ -269,6 +321,7 @@ class LinksTable extends Table
                 return true; // stop on first true result
             }
         }
+
         return false;
     }
 
@@ -292,6 +345,7 @@ class LinksTable extends Table
                 ->where(['alias' => $out])
                 ->count();
         } while ($alias_count > 0);
+
         return $out;
     }
 
@@ -306,6 +360,7 @@ class LinksTable extends Table
             $generateurl .= $listAlpha{$random};
             $i = $i + 1;
         }
+
         return $generateurl;
     }
 
@@ -314,7 +369,7 @@ class LinksTable extends Table
         $linkMeta = [
             'title' => '',
             'description' => '',
-            'image' => ''
+            'image' => '',
         ];
 
         if (parse_url($long_url, PHP_URL_SCHEME) == 'magnet') {
@@ -327,7 +382,10 @@ class LinksTable extends Table
             return $linkMeta;
         }
 
-        $content = curlHtmlHeadRequest($long_url);
+        $content = curlHtmlHeadRequest($long_url, 'GET', [], [], [
+            CURLOPT_ENCODING => 'gzip,deflate',
+        ]);
+
 
         if (!empty($content)) {
             $doc = new \DOMDocument();
@@ -335,7 +393,6 @@ class LinksTable extends Table
             // http://www.php.net/manual/en/domdocument.loadhtml.php#95251
             @$doc->loadHTML('<?xml encoding="UTF-8">' . $content);
             $nodes = $doc->getElementsByTagName('title');
-
 
             if (!empty($nodes->item(0)->nodeValue)) {
                 $title = $nodes->item(0)->nodeValue;
@@ -373,6 +430,7 @@ class LinksTable extends Table
         if (in_array($keyword, $reserved_aliases)) {
             return true;
         }
+
         return false;
     }
 }

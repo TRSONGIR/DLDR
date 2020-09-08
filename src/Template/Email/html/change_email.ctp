@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <p><?= __('Hello') ?> <b><?php echo $username; ?></b>,</p>
 
 <p><?= __('To change your email click on the following link or copy-paste it in your browser:') ?></p>

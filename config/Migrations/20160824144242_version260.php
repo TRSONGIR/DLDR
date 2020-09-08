@@ -15,15 +15,15 @@ class Version260 extends AbstractMigration
         $rows = [
             [
                 'name' => 'campaign_paid_views_day',
-                'value' => '1'
+                'value' => '1',
             ],
             [
                 'name' => 'mass_shrinker_default_advert',
-                'value' => '1'
+                'value' => '1',
             ],
             [
                 'name' => 'minimum_withdrawal_amount',
-                'value' => '5'
+                'value' => '5',
             ],
         ];
 
@@ -33,13 +33,13 @@ class Version260 extends AbstractMigration
 
         $this->table('statistics')
             ->addColumn('reason', 'integer', [
-                'comment' => '1 = Earn, 2 = Disabled cookie, 3= Anonymous user, 4 = Adblock, 5 = Proxy, '.
+                'comment' => '1 = Earn, 2 = Disabled cookie, 3= Anonymous user, 4 = Adblock, 5 = Proxy, ' .
                     '6 = IP changed, 7 = Not unique, 8 = Full weight, 9 = Default campaign',
                 'default' => 0,
                 'limit' => 10,
                 'null' => false,
                 'signed' => false,
-                'after' => 'user_agent'
+                'after' => 'user_agent',
             ])
             ->update();
     }
@@ -53,7 +53,7 @@ class Version260 extends AbstractMigration
         $items = implode(",", [
             "'campaign_paid_views_day'",
             "'mass_shrinker_default_advert'",
-            "'minimum_withdrawal_amount'"
+            "'minimum_withdrawal_amount'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 

@@ -1,4 +1,10 @@
-<?php $user = $this->request->session()->read('Auth.User'); ?>
+<?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User $logged_user
+ * @var \App\Model\Entity\Plan $logged_user_plan
+ */
+?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
 <head>
@@ -9,27 +15,21 @@
     <meta name="description" content="<?= h($this->fetch('description')); ?>">
 
     <?= $this->Assets->favicon() ?>
-	
+
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic"
+          rel="stylesheet">
+
     <?php
     if ((bool)get_option('combine_minify_css_js', false)) {
-        
-		if(locale_get_primary_language(null)=='fa'){
-			echo $this->Assets->css('/build/css/dashboard.min.rtl.css');
-		}
-		else{
-			?>
-        <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet">
-
-			<?php
-			echo $this->Assets->css('/build/css/dashboard.min.css');
-		}
+        echo $this->Assets->css('/build/css/dashboard.min.css?ver=' . APP_VERSION);
     } else {
-        echo $this->Assets->css('/vendor/bootstrap/css/bootstrap.min.css');
-        echo $this->Assets->css('/vendor/font-awesome/css/font-awesome.min.css');
-        echo $this->Assets->css('/vendor/dashboard/css/AdminLTE.min.css');
-        echo $this->Assets->css('/vendor/dashboard/css/skins/skin-blue.min.css');
-        echo $this->Assets->css('/css/app.css');
+        echo $this->Assets->css('/vendor/bootstrap/css/bootstrap.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/font-awesome/css/font-awesome.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/dashboard/css/AdminLTE.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/vendor/dashboard/css/skins/_all-skins.min.css?ver=' . APP_VERSION);
+        echo $this->Assets->css('/css/app.css?ver=' . APP_VERSION);
     }
+
     echo $this->fetch('meta');
     echo $this->fetch('css');
     echo $this->fetch('script');
@@ -46,7 +46,8 @@
     <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="hold-transition <?= get_option('member_adminlte_theme_skin', 'skin-blue') ?> sidebar-mini">
+<body class="member-dashboard hold-transition <?= get_option('member_adminlte_theme_skin',
+    'skin-blue') ?> sidebar-mini">
 <div class="wrapper">
 
     <!-- Main Header -->
@@ -72,52 +73,68 @@
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
 
-                    <?php if (in_array($user['role'], ['admin', 'demo'])) : ?>
+                    <?php if (in_array($logged_user->role, ['admin', 'demo'])) : ?>
                         <li class="dropdown messages-menu">
                             <!-- Menu toggle button -->
                             <a href="<?= $this->Url->build([
                                 'controller' => 'Users',
                                 'action' => 'dashboard',
-                                'prefix' => 'admin'
+                                'prefix' => 'admin',
                             ]); ?>">
-                                <i class="fa fa-dashboard"></i> <?= __('Administration Area') ?>
+                                <i class="fa fa-dashboard"></i> <span
+                                        class="hidden-xs"><?= __('Administration Area') ?></span>
                             </a>
                         </li>
                     <?php endif; ?>
 
-                    <li class="dropdown language-menu">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-language"></i> <?= __('Language') ?>
+                    <li class="dropdown messages-menu">
+                        <!-- Menu toggle button -->
+                        <a href="<?= $this->Url->build([
+                            'controller' => 'Withdraws',
+                            'action' => 'index',
+                            'prefix' => 'member',
+                        ]); ?>">
+                            <span class="hidden-xs"><?= __('Available Balance') ?>: </span><?= display_price_currency($logged_user->publisher_earnings + $logged_user->referral_earnings); ?>
                         </a>
-                        <ul class="dropdown-menu">
-                            <?php foreach (get_site_languages(true) as $lang) : ?>
-                                <li>
-                                    <?= $this->Html->link(
-                                        locale_get_display_name($lang, $lang),
-                                        '/' . $this->request->url . '?lang=' . $lang
-                                    ); ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
                     </li>
+
+                    <?php if (count(get_site_languages(true)) > 1) : ?>
+                        <li class="dropdown language-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-language"></i> <?= __('Language') ?>
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <?php foreach (get_site_languages(true) as $lang) : ?>
+                                    <li>
+                                        <?= $this->Html->link(
+                                            locale_get_display_name($lang, $lang),
+                                            $this->request->getPath() . '?lang=' . $lang
+                                        ); ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </li>
+                    <?php endif; ?>
 
                     <!-- User Account Menu -->
                     <li class="dropdown user user-menu">
                         <!-- Menu Toggle Button -->
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <!-- The user image in the navbar-->
-                            <img src="<?= "https://www.gravatar.com/avatar/" . md5(strtolower(trim($user['email']))) .
+                            <img src="<?= "https://www.gravatar.com/avatar/" . md5(strtolower(trim($logged_user->email))) .
                             "?s=160" ?>" class="user-image">
                             <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                            <span class="hidden-xs"><?= h($user['first_name']); ?></span>
+                            <span class="hidden-xs"><?= h($logged_user->first_name); ?></span>
+                            <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
                             <!-- The user image in the menu -->
                             <li class="user-header">
                                 <img src="<?= "https://www.gravatar.com/avatar/" .
-                                md5(strtolower(trim($user['email']))) . "?s=160" ?>" class="img-circle">
+                                md5(strtolower(trim($logged_user->email))) . "?s=160" ?>" class="img-circle">
                                 <p>
-                                    <small><?= __('Member since') ?> <?= $user['created'] ?></small>
+                                    <small><?= __('Member since') ?> <?= $logged_user->created ?></small>
                                 </p>
                             </li>
                             <!-- Menu Footer-->
@@ -126,14 +143,14 @@
                                     <a href="<?= $this->Url->build([
                                         'controller' => 'Users',
                                         'action' => 'profile',
-                                        'prefix' => 'member'
+                                        'prefix' => 'member',
                                     ]); ?>" class="btn btn-default btn-flat"><?= __('Profile') ?></a>
                                 </div>
                                 <div class="pull-right">
                                     <a href="<?= $this->Url->build([
                                         'controller' => 'Users',
                                         'action' => 'logout',
-                                        'prefix' => 'auth'
+                                        'prefix' => 'auth',
                                     ]); ?>" class="btn btn-default btn-flat"><?= __('Log out') ?></a>
                                 </div>
                             </li>
@@ -166,7 +183,7 @@
                     <li>
                         <a><i class="fa fa-credit-card text-aqua"></i>
                             <span><b><?= __("Money Wallet") ?></b><br>
-                                <?= display_price_currency($user['wallet_money']) ?>
+                                <?= display_price_currency($logged_user->wallet_money) ?>
                             </span>
                         </a>
                     </li>
@@ -181,11 +198,11 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Links',
-                                'action' => 'index'
+                                'action' => 'index',
                             ]); ?>"><?= __('All Links') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Links',
-                                'action' => 'hidden'
+                                'action' => 'hidden',
                             ]); ?>"><?= __('Hidden Links') ?></a></li>
                     </ul>
                 </li>
@@ -193,70 +210,102 @@
                 <li><a href="<?php echo $this->Url->build(['controller' => 'Withdraws', 'action' => 'index']); ?>"><i
                                 class="fa fa-dollar"></i> <span><?= __('Withdraw') ?></span></a></li>
 
-                <li class="treeview">
-                    <a href="#"><i class="fa fa-wrench"></i> <span><?= __('Tools') ?></span> <i
-                                class="fa fa-angle-left pull-right"></i></a>
-                    <ul class="treeview-menu">
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Tools',
-                                'action' => 'quick'
-                            ]); ?>"><?= __('Quick Link') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Tools',
-                                'action' => 'massShrinker'
-                            ]); ?>"><?= __('Mass Shrinker') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Tools',
-                                'action' => 'full'
-                            ]); ?>"><?= __('Full Page Script') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Tools',
-                                'action' => 'api'
-                            ]); ?>"><?= __('Developers API') ?></a></li>
-                        <li><a href="<?php echo $this->Url->build([
-                                'controller' => 'Tools',
-                                'action' => 'bookmarklet'
-                            ]); ?>"><?= __('Bookmarklet') ?></a></li>
-                    </ul>
-                </li>
+                <?php if (
+                    $logged_user_plan->api_quick ||
+                    $logged_user_plan->api_mass ||
+                    $logged_user_plan->api_full ||
+                    $logged_user_plan->api_developer ||
+                    $logged_user_plan->bookmarklet
+                ) : ?>
+                    <li class="treeview">
+                        <a href="#"><i class="fa fa-wrench"></i> <span><?= __('Tools') ?></span> <i
+                                    class="fa fa-angle-left pull-right"></i></a>
+                        <ul class="treeview-menu">
+                            <?php if ($logged_user_plan->api_quick) : ?>
+                                <li><a href="<?php echo $this->Url->build([
+                                        'controller' => 'Tools',
+                                        'action' => 'quick',
+                                    ]); ?>"><?= __('Quick Link') ?></a></li>
+                            <?php endif; ?>
+                            <?php if ($logged_user_plan->api_mass) : ?>
+                                <li><a href="<?php echo $this->Url->build([
+                                        'controller' => 'Tools',
+                                        'action' => 'massShrinker',
+                                    ]); ?>"><?= __('Mass Shrinker') ?></a></li>
+                            <?php endif; ?>
+                            <?php if ($logged_user_plan->api_full) : ?>
+                                <li><a href="<?php echo $this->Url->build([
+                                        'controller' => 'Tools',
+                                        'action' => 'full',
+                                    ]); ?>"><?= __('Full Page Script') ?></a></li>
+                            <?php endif; ?>
+                            <?php if ($logged_user_plan->api_developer) : ?>
+                                <li><a href="<?php echo $this->Url->build([
+                                        'controller' => 'Tools',
+                                        'action' => 'api',
+                                    ]); ?>"><?= __('Developers API') ?></a></li>
+                            <?php endif; ?>
+                            <?php if ($logged_user_plan->bookmarklet) : ?>
+                                <li><a href="<?php echo $this->Url->build([
+                                        'controller' => 'Tools',
+                                        'action' => 'bookmarklet',
+                                    ]); ?>"><?= __('Bookmarklet') ?></a></li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+                <?php endif; ?>
 
-                <li><a href="<?php echo $this->Url->build(['controller' => 'Users', 'action' => 'referrals']); ?>"><i
-                                class="fa fa-exchange"></i> <span><?= __('Referrals') ?></span></a></li>
+                <?php if ((bool)get_option('enable_referrals', 1)) : ?>
+                    <li><a href="<?php echo $this->Url->build([
+                            'controller' => 'Users',
+                            'action' => 'referrals',
+                        ]); ?>"><i
+                                    class="fa fa-exchange"></i> <span><?= __('Referrals') ?></span></a></li>
+                <?php endif; ?>
 
-                <?php if (get_option('enable_advertising', 'yes') == 'yes') : ?>
+                <?php if (get_option('earning_mode', 'campaign') === 'campaign' &&
+                    get_option('enable_advertising', 'yes') == 'yes') : ?>
                     <li class="treeview">
                         <a href="#"><i class="fa fa-database"></i> <span><?= __('Campaigns') ?></span> <i
                                     class="fa fa-angle-left pull-right"></i></a>
                         <ul class="treeview-menu">
                             <li><a href="<?php echo $this->Url->build([
                                     'controller' => 'Campaigns',
-                                    'action' => 'index'
+                                    'action' => 'index',
                                 ]); ?>"><?= __('List') ?></a></li>
                             <?php if (get_option('enable_interstitial', 'yes') == 'yes') : ?>
                                 <li><a href="<?php echo $this->Url->build([
                                         'controller' => 'Campaigns',
-                                        'action' => 'createInterstitial'
+                                        'action' => 'createInterstitial',
                                     ]); ?>"><?= __('Create Interstitial Campaign') ?></a></li>
                             <?php endif; ?>
                             <?php if (get_option('enable_banner', 'yes') == 'yes') : ?>
                                 <li><a href="<?php echo $this->Url->build([
                                         'controller' => 'Campaigns',
-                                        'action' => 'createBanner'
+                                        'action' => 'createBanner',
                                     ]); ?>"><?= __('Create Banner Campaign') ?></a></li>
 
                             <?php endif; ?>
                             <?php if (get_option('enable_popup', 'yes') == 'yes') : ?>
                                 <li><a href="<?php echo $this->Url->build([
                                         'controller' => 'Campaigns',
-                                        'action' => 'createPopup'
+                                        'action' => 'createPopup',
                                     ]); ?>"><?= __('Create Popup Campaign') ?></a></li>
                             <?php endif; ?>
                         </ul>
                     </li>
                 <?php endif; ?>
 
-                <li><a href="<?php echo $this->Url->build(['controller' => 'Invoices', 'action' => 'index']); ?>"><i
-                                class="fa fa-credit-card"></i> <span><?= __('Invoices') ?></span></a></li>
+                <?php if (
+                    (bool)get_option('enable_premium_membership') ||
+                    get_option('earning_mode', 'campaign') === 'campaign'
+                ) : ?>
+                    <li>
+                        <a href="<?php echo $this->Url->build(['controller' => 'Invoices', 'action' => 'index']); ?>">
+                            <i class="fa fa-credit-card"></i> <span><?= __('Invoices') ?></span>
+                        </a>
+                    </li>
+                <?php endif; ?>
 
                 <li class="treeview">
                     <a href="#"><i class="fa fa-gears"></i> <span><?= __('Settings') ?></span> <i
@@ -264,15 +313,15 @@
                     <ul class="treeview-menu">
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'profile'
+                                'action' => 'profile',
                             ]); ?>"><?= __('Profile') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'changePassword'
+                                'action' => 'changePassword',
                             ]); ?>"><?= __('Change Password') ?></a></li>
                         <li><a href="<?php echo $this->Url->build([
                                 'controller' => 'Users',
-                                'action' => 'changeEmail'
+                                'action' => 'changeEmail',
                             ]); ?>"><?= __('Change Email') ?></a></li>
                     </ul>
                 </li>
@@ -280,8 +329,11 @@
                 <li><a href="<?php echo $this->Url->build(['controller' => 'Forms', 'action' => 'support']); ?>"><i
                                 class="fa fa-life-ring"></i> <span><?= __('Support') ?></span></a></li>
                 <?php if ((bool)get_option('enable_premium_membership')) : ?>
-                    <li><a href="<?php echo $this->Url->build(['controller' => 'Users', 'action' => 'plans']); ?>"><i
-                                    class="fa fa-refresh"></i> <span><?= __('Change Your Plan') ?></span></a></li>
+                    <li>
+                        <a href="<?php echo $this->Url->build(['controller' => 'Users', 'action' => 'plans']); ?>">
+                            <i class="fa fa-refresh"></i> <span><?= __('Change Your Plan') ?></span>
+                        </a>
+                    </li>
                 <?php endif; ?>
 
             </ul>
@@ -290,30 +342,39 @@
             <?php if ((bool)get_option('enable_premium_membership')) : ?>
 
                 <?php
-                if ($user['plan_id'] === 1) {
+                if ($logged_user_plan->id === 1) {
                     $exp_date = __("Never");
                 } else {
-                    $exp_date = $this->Time->nice($user['expiration']);
+                    $exp_date = __("Never");
+                    if (isset($logged_user->expiration)) {
+                        $exp_date = $this->Time->nice($logged_user->expiration);
+                    }
                 }
-
                 ?>
-                <div style="color: #b8c7ce; padding-left: 18px; padding-top: 20px;">
-                    <dl>
-                        <dt><i class="fa fa-user-circle"></i> <strong><?= __("Current Plan") ?></strong></dt>
-                        <dd><?= h($user['plan']['title']) ?></dd>
-                        <dt><i class="fa fa-clock-o"></i> <strong><?= __("Expiration Date") ?></strong></dt>
-                        <dd><?= $exp_date ?></dd>
-                        <?php if (isset($user['expiration']) &&
-                            ($this->Time->isThisWeek($user['expiration']) || $this->Time->isPast($user['expiration']))
-                        ) : ?>
-                            <?= $this->Html->link(
-                                __("Renew"),
-                                ['controller' => 'Users', 'action' => 'plans'],
-                                ['class' => 'btn btn-danger btn-sm']
-                            ); ?>
-                        <?php endif; ?>
-                    </dl>
-                </div>
+
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="<?= $this->Url->build(['controller' => 'Users', 'action' => 'plans']); ?>">
+                            <i class="fa fa-user-circle text-aqua"></i>
+                            <span><b><?= __("Current Plan") ?></b><br>
+                                <?= h($logged_user_plan->title) ?>
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?= $this->Url->build(['controller' => 'Users', 'action' => 'plans']); ?>">
+                            <i class="fa fa-clock-o text-aqua"></i>
+                            <span><b><?= __("Expiration Date") ?></b><br>
+                                <?= $exp_date ?>
+                                <?php if (isset($logged_user->expiration) &&
+                                    ($this->Time->isThisWeek($logged_user->expiration) || $this->Time->isPast($logged_user->expiration))
+                                ) : ?>
+                                    - <?= __("Renew") ?>
+                                <?php endif; ?>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
 
             <?php endif; ?>
 
@@ -343,7 +404,7 @@
                 </div>
             </div>
 
-            <?php if (!empty(get_option('ad_member'))) : ?>
+            <?php if (!$logged_user_plan->disable_ads && !empty(get_option('ad_member'))) : ?>
                 <div class="banner banner-member">
                     <div class="banner-inner">
                         <?= get_option('ad_member'); ?>
@@ -366,7 +427,7 @@
 
         </div>
         <!-- Default to the left -->
-        <?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?><br>طراحی و برنامه نویسی توسط <a href="http://rtlscript.ir" target="_blank">RTLscript</a>
+        <?= __('Copyright &copy;') ?> <?= h(get_option('site_name')) ?> <?= date("Y") ?>
     </footer>
 
     <!-- Add the sidebar's background. This div must be placed
@@ -378,9 +439,9 @@
 
 <?= $this->element('js_vars'); ?>
 
-<?php
-echo $this->Assets->script('/js/ads.js');
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
+<?php
 if ((bool)get_option('combine_minify_css_js', false)) {
     echo $this->Assets->script('/build/js/dashboard.min.js?ver=' . APP_VERSION);
 } else {

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Campaign[]|\Cake\Collection\CollectionInterface $campaigns
+ */
 $this->assign('title', __('Manage Campaigns'));
 $this->assign('description', '');
 $this->assign('content_title', __('Manage Campaigns'));
@@ -31,7 +35,7 @@ $statuses = [
         ?>
 
         <?=
-        $this->Form->input('Filter.id', [
+        $this->Form->control('Filter.id', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
@@ -40,7 +44,7 @@ $statuses = [
         ?>
 
         <?=
-        $this->Form->input('Filter.status', [
+        $this->Form->control('Filter.status', [
             'label' => false,
             'options' => $statuses,
             'empty' => __('Status'),
@@ -49,7 +53,7 @@ $statuses = [
         ?>
 
         <?=
-        $this->Form->input('Filter.ad_type', [
+        $this->Form->control('Filter.ad_type', [
             'label' => false,
             'options' => [
                 '1' => __('Interstitial'),
@@ -62,7 +66,7 @@ $statuses = [
         ?>
 
         <?=
-        $this->Form->input('Filter.name', [
+        $this->Form->control('Filter.name', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
@@ -71,7 +75,7 @@ $statuses = [
         ?>
 
         <?=
-        $this->Form->input('Filter.other_fields', [
+        $this->Form->control('Filter.other_fields', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
@@ -89,7 +93,7 @@ $statuses = [
 </div>
 
 <div class="box box-primary">
-    <div class="box-body table-responsive">
+    <div class="box-body">
 
         <?php
         $ad_types = [
@@ -99,120 +103,103 @@ $statuses = [
         ];
         ?>
 
-        <table class="table table-hover table-striped">
-            <thead>
-            <tr>
-                <th><?= $this->Paginator->sort('Campaigns.id', __('Reference')); ?></th>
-                <th><?= $this->Paginator->sort('Campaigns.ad_type', __('Campaign Type')); ?></th>
-                <th><?= $this->Paginator->sort('Campaigns.name', __('Name')); ?></th>
-                <th><?= $this->Paginator->sort('Campaigns.price', __('Price')); ?></th>
-                <th><?= __('Payment Method') ?></th>
-                <th><?= __('Visitors/Total') ?></th>
-                <th><?= $this->Paginator->sort('Campaigns.status', __('Status')); ?></th>
-                <th><?= $this->Paginator->sort('Campaigns.created', __('Created')); ?></th>
-                <th><?= __('Actions') ?></th>
-            </tr>
-            </thead>
-            <?php foreach ($campaigns as $campaign) : ?>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
                 <tr>
-                    <td><?= $this->Html->link($campaign->id, ['action' => 'view', $campaign->id]); ?></td>
-                    <td><?= $ad_types[$campaign->ad_type]; ?></td>
-                    <td>
-                        <?= $this->Html->link(
-                            $campaign->name,
-                            ['controller' => 'Campaigns', 'action' => 'view', $campaign->id]
-                        );
-                        ?>
-                    </td>
-                    <td><?= display_price_currency($campaign->price); ?></td>
-                    <td><?= (isset(get_payment_methods()[$campaign->payment_method])) ?
-                            get_payment_methods()[$campaign->payment_method] : $campaign->payment_method ?></td>
-                    <td>
-                        <?php
-                        $views_total = ['views' => 0, 'total' => 0];
-                        foreach ($campaign->campaign_items as $campaign_item) {
-                            $views_total['views'] += $campaign_item->views;
-                            $views_total['total'] += $campaign_item->purchase * 1000;
-                        }
-
-                        ?>
-                        <?= $views_total['views'] ?>/<?= $views_total['total'] ?>
-                    </td>
-                    <td><?= $statuses[$campaign->status]; ?></td>
-                    <td><?= display_date_timezone($campaign->created); ?></td>
-                    <td>
-                        <?= $this->Html->link(
-                            __('View'),
-                            ['action' => 'view', $campaign->id],
-                            ['class' => 'btn btn-primary btn-xs']
-                        ); ?>
-                        <?php if (6 == $campaign->status) : ?>
-                            <?= $this->Form->postLink(
-                                __('Pay'),
-                                ['action' => 'pay', $campaign->id],
-                                ['class' => 'btn btn-success btn-xs']
-                            ); ?>
-                        <?php endif; ?>
-                        <?php if (1 == $campaign->status) : ?>
-                            <?= $this->Form->postLink(
-                                __('Pause'),
-                                ['action' => 'pause', $campaign->id],
-                                ['confirm' => __('Are you sure?'), 'class' => 'btn btn-success btn-xs']
-                            ); ?>
-                        <?php endif; ?>
-                        <?php if (2 == $campaign->status) : ?>
-                            <?= $this->Form->postLink(
-                                __('Resume'),
-                                ['action' => 'resume', $campaign->id],
-                                ['confirm' => __('Are you sure?'), 'class' => 'btn btn-success btn-xs']
-                            ); ?>
-                        <?php endif; ?>
-                    </td>
+                    <th><?= $this->Paginator->sort('Campaigns.id', __('Reference')); ?></th>
+                    <th><?= $this->Paginator->sort('Campaigns.ad_type', __('Campaign Type')); ?></th>
+                    <th><?= $this->Paginator->sort('Campaigns.name', __('Name')); ?></th>
+                    <th><?= $this->Paginator->sort('Campaigns.price', __('Price')); ?></th>
+                    <th><?= __('Payment Method') ?></th>
+                    <th><?= __('Visitors/Total') ?></th>
+                    <th><?= $this->Paginator->sort('Campaigns.status', __('Status')); ?></th>
+                    <th><?= $this->Paginator->sort('Campaigns.created', __('Created')); ?></th>
+                    <th><?= __('Actions') ?></th>
                 </tr>
-            <?php endforeach; ?>
-            <?php unset($campaign); ?>
-        </table>
+                </thead>
+                <?php foreach ($campaigns as $campaign) : ?>
+                    <tr>
+                        <td><?= $this->Html->link($campaign->id, ['action' => 'view', $campaign->id]); ?></td>
+                        <td><?= $ad_types[$campaign->ad_type]; ?></td>
+                        <td>
+                            <?= $this->Html->link(
+                                $campaign->name,
+                                ['controller' => 'Campaigns', 'action' => 'view', $campaign->id]
+                            );
+                            ?>
+                        </td>
+                        <td><?= display_price_currency($campaign->price); ?></td>
+                        <td><?= (isset(get_payment_methods()[$campaign->payment_method])) ?
+                                get_payment_methods()[$campaign->payment_method] : $campaign->payment_method ?></td>
+                        <td>
+                            <?php
+                            $views_total = ['views' => 0, 'total' => 0];
+                            foreach ($campaign->campaign_items as $campaign_item) {
+                                $views_total['views'] += $campaign_item->views;
+                                $views_total['total'] += $campaign_item->purchase * 1000;
+                            }
+
+                            ?>
+                            <?= $views_total['views'] ?>/<?= $views_total['total'] ?>
+                        </td>
+                        <td><?= $statuses[$campaign->status]; ?></td>
+                        <td><?= display_date_timezone($campaign->created); ?></td>
+                        <td>
+                            <?= $this->Html->link(
+                                __('View'),
+                                ['action' => 'view', $campaign->id],
+                                ['class' => 'btn btn-primary btn-xs']
+                            ); ?>
+                            <?php if (6 == $campaign->status) : ?>
+                                <?= $this->Form->postLink(
+                                    __('Pay'),
+                                    ['action' => 'pay', $campaign->id],
+                                    ['class' => 'btn btn-success btn-xs']
+                                ); ?>
+                            <?php endif; ?>
+                            <?php if (1 == $campaign->status) : ?>
+                                <?= $this->Form->postLink(
+                                    __('Pause'),
+                                    ['action' => 'pause', $campaign->id],
+                                    ['confirm' => __('Are you sure?'), 'class' => 'btn btn-success btn-xs']
+                                ); ?>
+                            <?php endif; ?>
+                            <?php if (2 == $campaign->status) : ?>
+                                <?= $this->Form->postLink(
+                                    __('Resume'),
+                                    ['action' => 'resume', $campaign->id],
+                                    ['confirm' => __('Are you sure?'), 'class' => 'btn btn-success btn-xs']
+                                ); ?>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php unset($campaign); ?>
+            </table>
+        </div>
 
     </div><!-- /.box-body -->
 </div>
 
 <ul class="pagination">
-    <!-- Shows the previous link -->
     <?php
+    $this->Paginator->setTemplates([
+        'ellipsis' => '<li><a href="javascript: void(0)">...</a></li>',
+    ]);
+
     if ($this->Paginator->hasPrev()) {
-        echo $this->Paginator->prev(
-            '«',
-            array('tag' => 'li'),
-            null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a')
-        );
+        echo $this->Paginator->prev('«');
     }
 
-    ?>
-    <!-- Shows the page numbers -->
-    <?php //echo $this->Paginator->numbers();    ?>
-    <?php
-    echo $this->Paginator->numbers(array(
+    echo $this->Paginator->numbers([
         'modulus' => 4,
-        'separator' => '',
-        'ellipsis' => '<li><a>...</a></li>',
-        'tag' => 'li',
-        'currentTag' => 'a',
         'first' => 2,
-        'last' => 2
-    ));
+        'last' => 2,
+    ]);
 
-    ?>
-    <!-- Shows the next link -->
-    <?php
     if ($this->Paginator->hasNext()) {
-        echo $this->Paginator->next(
-            '»',
-            array('tag' => 'li'),
-            null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a')
-        );
+        echo $this->Paginator->next('»');
     }
-
     ?>
 </ul>

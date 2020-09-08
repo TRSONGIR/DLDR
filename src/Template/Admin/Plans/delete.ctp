@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Plan $plan
+ */
 $this->assign('title', __('Delete Plan'));
 $this->assign('description', '');
 $this->assign('content_title', __('Delete Plan'));
@@ -12,7 +16,7 @@ $this->assign('content_title', __('Delete Plan'));
         <?= $this->Form->hidden('id'); ?>
 
         <?=
-        $this->Form->input('plan_replace', [
+        $this->Form->control('plan_replace', [
             'label' => __("Replace users within this plan with"),
             'options' => $plans,
             'empty' => __('Select Plan'),

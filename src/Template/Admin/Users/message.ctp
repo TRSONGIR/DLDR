@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User $user
+ */
 $this->assign('title', __('Message User'));
 $this->assign('description', '');
 $this->assign('content_title', __('Message User'));
@@ -11,7 +15,7 @@ $this->assign('content_title', __('Message User'));
         <?= $this->Form->create($message); ?>
 
         <?=
-        $this->Form->input('email', [
+        $this->Form->control('email', [
             'label' => __('User Email'),
             'class' => 'form-control',
             'value' => $user->email,
@@ -20,7 +24,7 @@ $this->assign('content_title', __('Message User'));
         ?>
 
         <?=
-        $this->Form->input('subject', [
+        $this->Form->control('subject', [
             'label' => __('Subject'),
             'class' => 'form-control',
             'type' => 'text'
@@ -28,7 +32,7 @@ $this->assign('content_title', __('Message User'));
         ?>
 
         <?=
-        $this->Form->input('message', [
+        $this->Form->control('message', [
             'label' => __('Message'),
             'class' => 'form-control',
             'type' => 'textarea'

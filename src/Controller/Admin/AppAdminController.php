@@ -6,25 +6,29 @@ use App\Controller\AppController;
 use Cake\Event\Event;
 use Cake\ORM\TableRegistry;
 
+/**
+ * @property \Cake\ORM\Table $AppAdmin
+ */
 class AppAdminController extends AppController
 {
     public $paginate = [
         'limit' => 10,
-        'order' => ['id' => 'DESC']
+        'order' => ['id' => 'DESC'],
     ];
 
     public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
 
-        $this->viewBuilder()->layout('admin');
+        $this->viewBuilder()->setLayout('admin');
 
-
-        if ($this->redirect_for_license_activate()) {
-            return $this->redirect(['controller' => 'Activation', 'action' => 'index'], 307);
+        if ($this->redirect_for_database_upgrade()) {
+            return $this->redirect(['controller' => 'Upgrade', 'action' => 'index'], 307);
         }
 
-        $this->checkDefaultCampaigns();
+        if ($this->Auth->user()) {
+            $this->checkDefaultCampaigns();
+        }
     }
 
     public function isAuthorized($user = null)
@@ -39,22 +43,24 @@ class AppAdminController extends AppController
 
     protected function redirect_for_database_upgrade()
     {
-        if (require_database_upgrade() && $this->request->params['controller'] !== 'Upgrade') {
+        if (require_database_upgrade() && $this->getRequest()->getParam('controller') !== 'Upgrade') {
             return true;
         }
+
         return false;
     }
 
     protected function redirect_for_license_activate()
     {
+        if (require_database_upgrade()) {
+            return false;
+        }
 
-
-        $Activation = TableRegistry::get('Activation');
-		
-        if ($Activation->checkLicense() === false && $this->request->params['controller'] !== 'Activation') {
+        $Activation = TableRegistry::getTableLocator()->get('Activation');
+        if ($Activation->checkLicense() === false && $this->getRequest()->getParam('controller') !== 'Activation') {
             return true;
         }
-		
+
         return false;
     }
 
@@ -64,12 +70,12 @@ class AppAdminController extends AppController
             return true;
         }
 
-        $Campaigns = TableRegistry::get('Campaigns');
+        $Campaigns = TableRegistry::getTableLocator()->get('Campaigns');
         $interstitial_campaigns = $Campaigns->find()
             ->where([
                 'default_campaign' => 1,
                 'ad_type' => 1,
-                'status' => 1
+                'status' => 1,
             ])
             ->count();
 
@@ -81,7 +87,7 @@ class AppAdminController extends AppController
             ->where([
                 'default_campaign' => 1,
                 'ad_type' => 2,
-                'status' => 1
+                'status' => 1,
             ])
             ->count();
 

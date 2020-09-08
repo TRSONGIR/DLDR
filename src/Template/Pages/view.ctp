@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Page $page
+ */
 $this->assign('title', ($page->meta_title) ?: $page->title);
 $this->assign('description', $page->meta_description);
 $this->assign('content_title', $page->title);

@@ -1,4 +1,5 @@
 <?php
+
 use Migrations\AbstractMigration;
 
 class Initial extends AbstractMigration
@@ -8,6 +9,13 @@ class Initial extends AbstractMigration
     public function up()
     {
         $this->execute("SET SESSION sql_mode = ''");
+
+        $databaseName = $this->getAdapter()->getOption('name');
+
+        try {
+            $this->execute("ALTER DATABASE `{$databaseName}` CHARACTER SET utf8 COLLATE utf8_general_ci;");
+        } catch (\Exception $exception) {
+        }
 
         $this->table('campaign_items')
             ->addColumn('id', 'integer', [
@@ -58,9 +66,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('campaigns', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('campaigns')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -140,9 +146,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('links', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('links')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -208,9 +212,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('options', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('options')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -231,9 +233,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('pages', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('pages')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -274,9 +274,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('statistics', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('statistics')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -365,9 +363,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('users', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('users')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -422,14 +418,14 @@ class Initial extends AbstractMigration
                 'null' => false,
                 'precision' => 50,
                 'scale' => 6,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('publisher_balance', 'float', [
                 'default' => 0,
                 'null' => false,
                 'precision' => 50,
                 'scale' => 6,
-                'signed' => false
+                'signed' => false,
             ])
             ->addColumn('first_name', 'string', [
                 'default' => '',
@@ -498,9 +494,7 @@ class Initial extends AbstractMigration
             ])
             ->create();
 
-        $this->table('withdraws', [
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('withdraws')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,

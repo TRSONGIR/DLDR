@@ -1,5 +1,8 @@
 <?php
-$this->assign('title', __('Installation: Welcome'));
+/**
+ * @var \App\View\AppView $this
+ */
+$this->assign('title', __('[Installation: Welcome]'));
 
 ?>
 
@@ -71,8 +74,19 @@ $this->assign('title', __('Installation: Welcome'));
             echo alert_message(__('Your version of PHP does NOT have the intl or mcrypt extension loaded.'), 'danger');
         }
 
+        if (extension_loaded('bcmath')) {
+            //echo alert_message( __( 'Your version of PHP has the bcmath extension loaded.' ), 'success' );
+        } else {
+            $check = false;
+            echo alert_message(__('Your version of PHP does NOT have the bcmath extension loaded.'), 'danger');
+        }
+
         if (extension_loaded('curl')) {
             //echo alert_message( __( 'Your version of PHP has the curl extension loaded.' ), 'success' );
+            if (!in_array('https', curl_version()['protocols'])) {
+                $check = false;
+                echo alert_message(__('Your PHP curl extension should support https protocol.'), 'danger');
+            }
         } else {
             $check = false;
             echo alert_message(__('Your version of PHP does NOT have the curl extension loaded.'), 'danger');
@@ -90,6 +104,14 @@ $this->assign('title', __('Installation: Welcome'));
         } else {
             $check = false;
             echo alert_message(__('Your version of PHP does NOT have the mbstring extension loaded.'), 'danger');
+        }
+
+        // pdo_drivers()
+        if (extension_loaded('pdo_mysql')) {
+            //echo alert_message( __( 'Your version of PHP has the pdo_mysql extension loaded.' ), 'success' );
+        } else {
+            $check = false;
+            echo alert_message(__('Your version of PHP does NOT have the pdo_mysql extension loaded.'), 'danger');
         }
 
         ?>

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Quick Link'));
 $this->assign('description', '');
 $this->assign('content_title', __('Quick Link'));
@@ -8,14 +11,10 @@ $this->assign('content_title', __('Quick Link'));
 <div class="box box-primary">
     <div class="box-body">
 
-        <?php if ($notice) : ?>
-            <div class="alert alert-danger" role="alert"><i class="fa fa-exclamation-triangle"></i><?= $notice ?></div>
-        <?php endif; ?>
-
         <div class="callout callout-success">
             <h4><?= __('Your API token:') ?></h4>
             <p>
-            <pre><?= $user->api_token ?></pre>
+            <pre><?= $logged_user->api_token ?></pre>
             </p>
         </div>
 
@@ -28,7 +27,7 @@ $this->assign('content_title', __('Quick Link'));
             get_option('site_name')
         ) ?></p>
 
-        <pre><?= $this->Url->build('/', true); ?>st?api=<b><?= $user->api_token ?></b>&url=<b>yourdestinationlink.com</b></pre>
+        <pre><?= $this->Url->build('/', true); ?>st?api=<b><?= $logged_user->api_token ?></b>&url=<b>yourdestinationlink.com</b></pre>
 
     </div>
 </div>

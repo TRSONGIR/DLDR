@@ -1,8 +1,11 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
 $this->assign('title', __("Link Statistics"));
 $this->assign('description', get_option('description'));
 $this->assign('content_title', __("Link Statistics"));
-
 ?>
 
 <h3 class="page-title"><?= __("Link Statistics") ?></h3>
@@ -11,7 +14,7 @@ $this->assign('content_title', __("Link Statistics"));
     <div class="box-body">
         <div class="row">
             <div class="col-sm-3 text-center">
-                <img src="//api.webthumbnail.org/?width=400&height=300&screen=1366&url=<?= urlencode($link->url); ?>"
+                <img src="<?= 'data:image/png;base64,' . base64_encode(curlRequest('http://api.miniature.io/?width=400&height=300&screen=1366&url=' . urlencode($link->url))->body); ?>"
                      alt="<?= h($link->title); ?>" title="<?= h($link->title); ?>">
             </div>
             <div class="col-sm-7">
@@ -40,6 +43,9 @@ $this->assign('content_title', __("Link Statistics"));
     </div>
     <div class="box-body">
         <div class="chart" id="last-month-hits" style="position: relative; height: 300px; width: 100%;"></div>
+        <div class="small text-right" style="padding-right: 10px;">
+            <?= __('Data is reported in {0} timezone', get_option('timezone', 'UTC')) ?>
+        </div>
     </div><!-- /.box-body -->
 </div><!-- /.box -->
 
@@ -111,70 +117,69 @@ $this->assign('content_title', __("Link Statistics"));
 
 <?php $this->start('scriptBottom'); ?>
 
-<link rel="stylesheet" href="//cdn.rawgit.com/almasaeed2010/AdminLTE/v2.3.3/plugins/morris/morris.css">
-<script src="//cdn.rawgit.com/DmitryBaranovskiy/raphael/v2.1.0/raphael-min.js"></script>
-<script src="//cdn.rawgit.com/almasaeed2010/AdminLTE/v2.3.3/plugins/morris/morris.min.js"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/almasaeed2010/AdminLTE@v2.3.11/plugins/morris/morris.css">
+<script src="https://cdn.jsdelivr.net/gh/DmitryBaranovskiy/raphael@v2.1.0/raphael-min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/almasaeed2010/AdminLTE@v2.3.11/plugins/morris/morris.min.js"
         type="text/javascript"></script>
 
 <script>
 
-    jQuery(document).ready(function () {
-        new Morris.Line({
-            element: 'last-month-hits',
-            resize: true,
-            data: [
-                <?php
-                $last30days = array();
-                for ($i = 30; $i > 0; $i--) {
-                    $last30days[date('d-m-Y', strtotime('-' . $i . ' days'))] = 0;
-                }
-                foreach ($stats as $stat) {
-                    if (empty($stat->statDateCount)) {
-                        $stat->statDateCount = 0;
-                    }
-                    $last30days[$stat->statDate] = $stat->statDateCount;
-                }
+  jQuery(document).ready(function() {
+    new Morris.Line({
+      element: 'last-month-hits',
+      resize: true,
+      data: [
+          <?php
+          $last30days = [];
+          for ($i = 30; $i > 0; $i--) {
+              $last30days[date('Y-m-d', strtotime('-' . $i . ' days'))] = 0;
+          }
+          foreach ($stats as $stat) {
+              if (empty($stat->statDateCount)) {
+                  $stat->statDateCount = 0;
+              }
+              $last30days[$stat->statDate] = $stat->statDateCount;
+          }
 
-                foreach ($last30days as $key => $value) {
-                    $date = date("Y-m-d", strtotime($key));
-                    echo '{date: "' . $date . '", clicks: ' . $value . '},';
-                }
-                ?>
-            ],
-            xkey: 'date',
-            xLabels: 'day',
-            ykeys: ['clicks'],
-            labels: ['Clicks'],
-            lineWidth: 2,
-            hideHover: 'auto',
-            smooth: false
-        });
-
+          foreach ($last30days as $key => $value) {
+              echo '{date: "' . $key . '", clicks: ' . $value . '},';
+          }
+          ?>
+      ],
+      xkey: 'date',
+      xLabels: 'day',
+      ykeys: ['clicks'],
+      labels: ['Clicks'],
+      lineWidth: 2,
+      hideHover: 'auto',
+      smooth: false,
     });
+
+  });
 </script>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
 <script type='text/javascript'>
-    google.load('visualization', '1', {'packages': ['geochart']});
-    google.setOnLoadCallback(drawRegionsMap);
+  google.load('visualization', '1', {'packages': ['geochart']});
+  google.setOnLoadCallback(drawRegionsMap);
 
-    function drawRegionsMap() {
-        var data = google.visualization.arrayToDataTable([
-            ['Country', 'Clicks'],
-            <?php
-            foreach ($countries as $country) {
-                echo '["' . $country->country . '", ' . $country->clicks . '],';
-            }
-            ?>
-        ]);
+  function drawRegionsMap()
+  {
+    var data = google.visualization.arrayToDataTable([
+      ['Country', 'Clicks'],
+        <?php
+        foreach ($countries as $country) {
+            echo '["' . $country->country . '", ' . $country->clicks . '],';
+        }
+        ?>
+    ]);
 
-        var options = {};
+    var options = {};
 
-        var chart = new google.visualization.GeoChart(document.getElementById('countries_geochart'));
-        chart.draw(data, options);
-    }
-    ;
+    var chart = new google.visualization.GeoChart(document.getElementById('countries_geochart'));
+    chart.draw(data, options);
+  }
 </script>
 
 <?php $this->end(); ?>

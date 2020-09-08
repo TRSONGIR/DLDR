@@ -1,3 +1,9 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Testimonial[]|\Cake\Collection\CollectionInterface $testimonials
+ */
+?>
 <div class="testimonials owl-carousel">
     <?php foreach ($testimonials as $testimonial) : ?>
 

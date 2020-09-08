@@ -2,9 +2,11 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\PostsTable $Posts
+ */
 class PostsController extends AppAdminController
 {
     public function index()
@@ -19,17 +21,18 @@ class PostsController extends AppAdminController
     {
         $post = $this->Posts->newEntity();
 
-        if ($this->request->is('post')) {
-            if (isset($this->request->data['slug']) && !empty($this->request->data['slug'])) {
-                $this->request->data['slug'] = $this->Posts->createSlug($this->request->data['slug']);
+        if ($this->getRequest()->is('post')) {
+            if (!empty($this->getRequest()->getData('slug'))) {
+                $this->getRequest()->data['slug'] = $this->Posts->createSlug($this->getRequest()->getData('slug'));
             } else {
-                $this->request->data['slug'] = $this->Posts->createSlug($this->request->data['title']);
+                $this->getRequest()->data['slug'] = $this->Posts->createSlug($this->getRequest()->getData('title'));
             }
 
-            $post = $this->Posts->patchEntity($post, $this->request->data);
+            $post = $this->Posts->patchEntity($post, $this->getRequest()->getData());
 
             if ($this->Posts->save($post)) {
                 $this->Flash->success(__('Post has been added.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
@@ -43,9 +46,8 @@ class PostsController extends AppAdminController
             throw new NotFoundException(__('Invalid Post'));
         }
 
-        if (isset($this->request->query['lang']) && isset(get_site_languages()[$this->request->query['lang']])) {
-            //$post->_locale = $this->request->query['lang'];
-            $this->Posts->locale($this->request->query['lang']);
+        if ($this->getRequest()->getQuery('lang') && isset(get_site_languages()[$this->getRequest()->getQuery('lang')])) {
+            $this->Posts->setLocale($this->getRequest()->getQuery('lang'));
         }
 
         $post = $this->Posts->get($id);
@@ -53,17 +55,19 @@ class PostsController extends AppAdminController
             throw new NotFoundException(__('Invalid Post'));
         }
 
-        if ($this->request->is(['post', 'put'])) {
-            if (isset($this->request->data['slug']) && !empty($this->request->data['slug'])) {
-                $this->request->data['slug'] = $this->Posts->createSlug($this->request->data['slug'], $id);
+        if ($this->getRequest()->is(['post', 'put'])) {
+            if (!empty($this->getRequest()->getData('slug'))) {
+                $this->getRequest()->data['slug'] = $this->Posts->createSlug($this->getRequest()->getData('slug'), $id);
             } else {
-                $this->request->data['slug'] = $this->Posts->createSlug($this->request->data['title'], $id);
+                $this->getRequest()->data['slug'] = $this->Posts->createSlug($this->getRequest()->getData('title'),
+                    $id);
             }
 
-            $post = $this->Posts->patchEntity($post, $this->request->data);
+            $post = $this->Posts->patchEntity($post, $this->getRequest()->getData());
 
             if ($this->Posts->save($post)) {
                 $this->Flash->success(__('Post has been updated.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('Oops! There are mistakes in the form. Please make the correction.'));
@@ -73,7 +77,7 @@ class PostsController extends AppAdminController
 
     public function delete($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->getRequest()->allowMethod(['post', 'delete']);
 
         /*
         if(in_array($id, [1, 2, 3, 4, 5]) ) {
@@ -86,6 +90,7 @@ class PostsController extends AppAdminController
 
         if ($this->Posts->delete($post)) {
             $this->Flash->success(__('The post with id: {0} has been deleted.', $post->id));
+
             return $this->redirect(['action' => 'index']);
         }
     }

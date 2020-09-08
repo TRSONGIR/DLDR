@@ -1,4 +1,9 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ * @var \App\Model\Entity\Post $post
+ */
 $this->assign('title', get_option('site_name'));
 $this->assign('description', get_option('description'));
 $this->assign('content_title', get_option('site_name'));
@@ -9,9 +14,9 @@ $this->assign('og_image', $link->image);
 
 <?php $this->start('scriptTop'); ?>
 <script type="text/javascript">
-    if (window.self !== window.top) {
-        window.top.location.href = window.location.href;
-    }
+  if (window.self !== window.top) {
+    window.top.location.href = window.location.href
+  }
 </script>
 <?php $this->end(); ?>
 
@@ -24,6 +29,15 @@ $this->assign('og_image', $link->image);
                         <div class="banner-inner">
                             <?= $banner_728x90; ?>
                         </div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if($post): ?>
+                    <div class="blog-item text-left">
+                        <div class="page-header">
+                            <h3><small><a href="<?= build_main_domain_url('/blog') ?>"><?= __('From Our Blog') ?>:</a></small> <?= h($post->title) ?></h3>
+                        </div>
+                        <div class="blog-content"><?= $post->description ?></div>
                     </div>
                 <?php endif; ?>
 
@@ -72,12 +86,7 @@ $this->Form->create(null, [
 ]);
 ?>
 
-<?= $this->Form->hidden('alias', ['value' => $link->alias]); ?>
-<?= $this->Form->hidden('ci', ['value' => $campaign_item->campaign_id]); ?>
-<?= $this->Form->hidden('cui', ['value' => $campaign_item->campaign->user_id]); ?>
-<?= $this->Form->hidden('cii', ['value' => $campaign_item->id]); ?>
-<?= $this->Form->hidden('ref', ['value' => strtolower(env('HTTP_REFERER'))]); ?>
-<?= $this->Form->hidden('country', ['value' => $country]); ?>
+<?= $this->Form->hidden('ad_form_data', ['value' => $ad_form_data]); ?>
 
 <?=
 $this->Form->button(__('Submit'), [

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\User $user
+ */
 $this->assign('title', __('Forgot Password'));
 $this->assign('description', __('Enter your e-mail address below to reset your password.'));
 ?>
@@ -10,7 +14,7 @@ $this->assign('description', __('Enter your e-mail address below to reset your p
     <p><?= __('Enter your e-mail address below to reset your password.') ?></p>
 
     <?=
-    $this->Form->input('email', [
+    $this->Form->control('email', [
         'label' => false,
         'placeholder' => __('Email'),
         'class' => 'form-control',
@@ -37,7 +41,7 @@ $this->assign('description', __('Enter your e-mail address below to reset your p
     <?= $this->Form->hidden('id', ['value' => $user->id]); ?>
 
     <?=
-    $this->Form->input('password', [
+    $this->Form->control('password', [
         'label' => false,
         'placeholder' => __('New Password'),
         'class' => 'form-control',
@@ -46,7 +50,7 @@ $this->assign('description', __('Enter your e-mail address below to reset your p
     ?>
 
     <?=
-    $this->Form->input('confirm_password', [
+    $this->Form->control('confirm_password', [
         'label' => __('Re-enter New Password'),
         'label' => false,
         'placeholder' => __('Re-enter New Password'),

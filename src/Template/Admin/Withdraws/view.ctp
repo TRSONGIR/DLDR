@@ -1,4 +1,9 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link[]|\Cake\Collection\CollectionInterface $links
+ * @var \App\Model\Entity\Withdraw $withdraw
+ */
 $this->assign('title', __('Withdraw #{0}', $withdraw->id));
 $this->assign('description', '');
 $this->assign('content_title', __('Withdraw #{0}', $withdraw->id));
@@ -8,10 +13,12 @@ $this->assign('content_title', __('Withdraw #{0}', $withdraw->id));
 $statuses = [
     1 => __('Approved'),
     2 => __('Pending'),
-    3 => __('Complete')
+    3 => __('Complete'),
+    4 => __('Cancelled'),
+    5 => __('Returned')
 ];
 
-$withdrawal_methods = array_column(get_withdrawal_methods(), 'name', 'id');
+$withdrawal_methods = array_column_polyfill(get_withdrawal_methods(), 'name', 'id');
 ?>
 
 <div class="box box-primary">
@@ -142,7 +149,7 @@ $countries_list = get_countries(true) + ['Others' => 'Others'];
 
 <div class="box box-solid box-primary">
     <div class="box-header with-border">
-        <i class="fa fa-hand-pointer-o""></i>
+        <i class="fa fa-hand-pointer-o"></i>
         <h3 class="box-title"><?= __("IPs") ?></h3>
     </div>
     <div class="box-body" style="height: 300px; overflow: auto;">

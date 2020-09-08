@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <?=
 $this->Form->create(null, [
     'url' => ['controller' => 'Links', 'action' => 'shorten', 'prefix' => false],
@@ -16,7 +21,7 @@ $this->Form->templates([
 <div class="form-group">
     <div class="input-group">
         <?=
-        $this->Form->input('url', [
+        $this->Form->control('url', [
             'label' => false,
             'type' => 'text',
             'placeholder' => __('Your URL Here'),
@@ -55,6 +60,8 @@ $this->Form->templates([
     $this->Form->unlockField('g-recaptcha-response');
     $this->Form->unlockField('adcopy_challenge');
     $this->Form->unlockField('adcopy_response');
+    $this->Form->unlockField('captcha_namespace');
+    $this->Form->unlockField('captcha_code');
     ?>
 <?php endif; ?>
 

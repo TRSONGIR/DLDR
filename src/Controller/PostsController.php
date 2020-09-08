@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
-use App\Controller\FrontController;
 use Cake\Event\Event;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\PostsTable $Posts
+ */
 class PostsController extends FrontController
 {
     public $paginate = [
@@ -20,6 +22,10 @@ class PostsController extends FrontController
 
     public function index()
     {
+        if (!(bool)get_option('blog_enable', 0)) {
+            throw new NotFoundException(__('Not Found.'));
+        }
+
         $query = $this->Posts->find()
             ->where(['Posts.published' => 1])
             ->order(['Posts.id' => 'DESC']);
@@ -30,6 +36,10 @@ class PostsController extends FrontController
 
     public function view($id = null, $slug = null)
     {
+        if (!(bool)get_option('blog_enable', 0)) {
+            throw new NotFoundException(__('Not Found.'));
+        }
+
         if (!$id) {
             throw new NotFoundException(__('Invalid Post.'));
         }

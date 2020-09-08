@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Testimonial $testimonial
+ */
 $this->assign('title', __('Add Testimonial'));
 $this->assign('description', '');
 $this->assign('content_title', __('Add Testimonial'));
@@ -10,7 +14,7 @@ $this->assign('content_title', __('Add Testimonial'));
         <?= $this->Form->create($testimonial); ?>
 
         <?=
-        $this->Form->input('name', [
+        $this->Form->control('name', [
             'label' => __('Name'),
             'class' => 'form-control',
             'type' => 'text'
@@ -19,7 +23,7 @@ $this->assign('content_title', __('Add Testimonial'));
         ?>
 
         <?=
-        $this->Form->input('position', [
+        $this->Form->control('position', [
             'label' => __('Position'),
             'class' => 'form-control',
             'type' => 'text'
@@ -28,7 +32,7 @@ $this->assign('content_title', __('Add Testimonial'));
         ?>
 
         <?=
-        $this->Form->input('image', [
+        $this->Form->control('image', [
             'label' => __('Image'),
             'class' => 'form-control',
             'type' => 'text'
@@ -37,7 +41,7 @@ $this->assign('content_title', __('Add Testimonial'));
         ?>
 
         <?=
-        $this->Form->input('published', [
+        $this->Form->control('published', [
             'label' => __('Published'),
             'options' => [
                 '1' => __('Yes'),
@@ -49,7 +53,7 @@ $this->assign('content_title', __('Add Testimonial'));
         ?>
 
         <?=
-        $this->Form->input('content', [
+        $this->Form->control('content', [
             'label' => __('Content'),
             'class' => 'form-control text-editor',
             'type' => 'textarea'
@@ -65,14 +69,14 @@ $this->assign('content_title', __('Add Testimonial'));
 
 <?php $this->start('scriptBottom'); ?>
 
-<script src="//cdn.ckeditor.com/4.6.2/full/ckeditor.js"></script>
+<script src="//cdn.ckeditor.com/4.10.1/full/ckeditor.js"></script>
 <script>
-    $(document).ready(function () {
-        CKEDITOR.replaceClass = 'text-editor';
-        CKEDITOR.config.allowedContent = true;
-        CKEDITOR.dtd.$removeEmpty['span'] = false;
-        CKEDITOR.dtd.$removeEmpty['i'] = false;
-    });
+  $(document).ready(function() {
+    CKEDITOR.replaceClass = 'text-editor';
+    CKEDITOR.config.allowedContent = true;
+    CKEDITOR.dtd.$removeEmpty['span'] = false;
+    CKEDITOR.dtd.$removeEmpty['i'] = false;
+  });
 </script>
 
 <?php $this->end(); ?>

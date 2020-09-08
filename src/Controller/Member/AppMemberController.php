@@ -4,13 +4,20 @@ namespace App\Controller\Member;
 
 use App\Controller\AppController;
 use Cake\Event\Event;
-use Cake\I18n\I18n;
 
+/**
+ * @property \App\Model\Table\UsersTable $Users
+ * @property \Cake\ORM\Table $AppMember
+ */
 class AppMemberController extends AppController
 {
+    public $logged_user;
+
+    public $logged_user_plan;
+
     public $paginate = [
         'limit' => 10,
-        'order' => ['id' => 'DESC']
+        'order' => ['id' => 'DESC'],
     ];
 
     public function isAuthorized($user)
@@ -28,16 +35,20 @@ class AppMemberController extends AppController
     {
         parent::beforeFilter($event);
 
-        $this->viewBuilder()->layout('member');
+        $this->viewBuilder()->setLayout('member');
 
-        // Check if SSL is enabled.
-        if ($this->setLanguage()) {
-            $protocol = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://" : "https://";
-            return $this->redirect($protocol . env('SERVER_NAME') . env('REQUEST_URI'), 301);
-        }
+        if ($this->Auth->user('id')) {
+            $this->loadModel('Users');
+            $user = $this->Users->find()
+                ->where(['id' => $this->Auth->user('id')])
+                ->first();
 
-        if (isset($_COOKIE['lang']) && in_array($_COOKIE['lang'], get_site_languages(true))) {
-            I18n::locale($_COOKIE['lang']);
+            $this->logged_user = $user;
+            $this->set('logged_user', $user);
+
+            $user_plan = get_user_plan($this->Auth->user('id'));
+            $this->logged_user_plan = $user_plan;
+            $this->set('logged_user_plan', $user_plan);
         }
     }
 }

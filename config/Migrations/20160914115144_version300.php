@@ -15,31 +15,31 @@ class Version300 extends AbstractMigration
         $rows = [
             [
                 'name' => 'link_info_public',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'link_info_member',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'coinbase_enable',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'coinbase_api_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinbase_api_secret',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'coinbase_sandbox',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'banktransfer_enable',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'banktransfer_instructions',
@@ -52,15 +52,15 @@ class Version300 extends AbstractMigration
                     '<td>SWIFT<\/td>\n        <td>----------<\/td>\n    <\/tr>\n    <tr>\n        <td>IBAN<\/td>\n' .
                     '        <td>----------<\/td>\n    <\/tr>\n    <tr>\n        <td>Account currency<\/td>\n        ' .
                     '<td>----------<\/td>\n    <\/tr>\n    <tr>\n        <td>Reference<\/td>\n        <td>Invoice ' .
-                    '#[invoice_id]<\/td>\n    <\/tr>\n<\/table>"')
+                    '#[invoice_id]<\/td>\n    <\/tr>\n<\/table>"'),
             ],
             [
                 'name' => 'home_shortening',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'home_shortening_register',
-                'value' => 'no'
+                'value' => 'no',
             ],
         ];
 
@@ -74,7 +74,7 @@ class Version300 extends AbstractMigration
                 'default' => 1,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->changeColumn('reason', 'integer', [
                 'comment' => '1=Earn, 2=Disabled cookie, 3=Anonymous user, 4=Adblock, 5=Proxy, 6=IP changed, ' .
@@ -82,7 +82,7 @@ class Version300 extends AbstractMigration
                 'default' => 0,
                 'limit' => 10,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
 
@@ -102,7 +102,7 @@ class Version300 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
 
@@ -116,7 +116,7 @@ class Version300 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
 
@@ -130,7 +130,7 @@ class Version300 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->renameColumn('withdrawal_email', 'withdrawal_account')
             ->changeColumn('withdrawal_account', 'text', [
@@ -150,7 +150,7 @@ class Version300 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
     }
@@ -171,7 +171,7 @@ class Version300 extends AbstractMigration
             "'banktransfer_enable'",
             "'banktransfer_instructions'",
             "'home_shortening'",
-            "'home_shortening_register'"
+            "'home_shortening_register'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
@@ -181,7 +181,7 @@ class Version300 extends AbstractMigration
                 'default' => 1,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->changeColumn('reason', 'integer', [
                 'comment' => '1=Earn, 2=Disabled cookie, 3=Anonymous user, 4=Adblock, 5=Proxy, 6=IP changed, 7=Not unique, 8=Full weight, 9=Default campaign',
@@ -189,7 +189,7 @@ class Version300 extends AbstractMigration
                 'limit' => 10,
                 'null' => false,
                 'signed' => false,
-                'after' => 'user_agent'
+                'after' => 'user_agent',
             ])
             ->update();
 

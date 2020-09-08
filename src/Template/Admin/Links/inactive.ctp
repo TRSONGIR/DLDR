@@ -1,58 +1,62 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link[]|\Cake\Collection\CollectionInterface $links
+ */
+?>
+<?php
 $this->assign('title', __('Manage Links'));
 $this->assign('description', '');
 $this->assign('content_title', __('Manage Links'));
-
 ?>
 
 <div class="box box-solid">
     <div class="box-body">
         <?php
-        // The base url is the url where we'll pass the filter parameters
-        $base_url = ['controller' => 'Links', 'action' => 'index'];
+        $base_url = ['controller' => 'Links', 'action' => 'inactive'];
 
         echo $this->Form->create(null, [
             'url' => $base_url,
-            'class' => 'form-inline'
+            'class' => 'form-inline',
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.id', [
+        $this->Form->control('Filter.id', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
             'size' => 0,
-            'placeholder' => __('Link Id')
+            'placeholder' => __('Link Id'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.user_id', [
+        $this->Form->control('Filter.user_id', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
             'size' => 0,
-            'placeholder' => __('User Id')
+            'placeholder' => __('User Id'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.alias', [
+        $this->Form->control('Filter.alias', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
             'size' => 10,
-            'placeholder' => __('Alias')
+            'placeholder' => __('Alias'),
         ]);
         ?>
 
         <?=
-        $this->Form->input('Filter.title_desc', [
+        $this->Form->control('Filter.title_desc', [
             'label' => false,
             'class' => 'form-control',
             'type' => 'text',
-            'placeholder' => __('Title, Desc. or URL')
+            'placeholder' => __('Title, Desc. or URL'),
         ]);
         ?>
 
@@ -65,93 +69,196 @@ $this->assign('content_title', __('Manage Links'));
     </div>
 </div>
 
-<?php foreach ($links as $link): ?>
+<div class="box box-primary">
+    <div class="box-body no-padding">
+        <div class="table-responsive">
+            <?= $this->Form->create(null, [
+                'url' => ['controller' => 'Links', 'action' => 'mass'],
+            ]);
+            ?>
+            <table class="table table-hover table-striped">
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th style="width:150px;"><?= __('Title') ?></th>
+                    <th><?= __('Short Link') ?></th>
+                    <th><?= __('Username'); ?></th>
+                    <th><?= $this->Paginator->sort('created', __('Created')); ?></th>
+                    <th>
+                        <div class="form-inline">
+                            <?=
+                            $this->Form->control('action', [
+                                'label' => false,
+                                'options' => [
+                                    '' => __('Mass Action'),
+                                    'hide' => __('Hide'),
+                                    'unhide' => __('Active'),
+                                    'delete' => __('Delete'),
+                                    'delete-stats' => __('Delete with stats'),
+                                ],
+                                'class' => 'form-control input-sm',
+                                //'onchange' => 'this.form.submit();',
+                                'required' => true,
+                                'templates' => [
+                                    'inputContainer' => '{{content}}',
+                                ],
+                            ]);
+                            ?>
 
-    <?php
-    $short_url = $this->Url->build('/' . $link->alias, true);
-
-    $title = $link->alias;
-    if (!empty($link->title)) {
-        $title = $link->title;
-    }
-    ?>
-
-    <div class="box box-solid">
-        <div class="box-body">
-            <h4><a href="<?= $short_url ?>" target="_blank" rel="nofollow noopener noreferrer">
-                    <span class="glyphicon glyphicon-link"></span> <?= h($title) ?></a></h4>
-            <p class="text-muted">
-                <small>
-                    <i class="fa fa-bar-chart"></i>
-                    <a href="<?= $short_url ?>/info" target="_blank" rel="nofollow noopener noreferrer">
-                        <?= __('Stats') ?></a> -
-                    <i class="fa fa-user"></i>
-                    <?=
-                    $this->Html->link(
-                        $link->user->username,
-                        ['controller' => 'Users', 'action' => 'view', $link->user_id]
-                    );
-                    ?> -
-                    <i class="fa fa-calendar"></i> <?= display_date_timezone($link->created); ?> -
-                    <a target="_blank" rel="nofollow noopener noreferrer" href="<?= $link->url ?>"><?=
-                        strtoupper(parse_url(
-                            $link->url,
-                            PHP_URL_HOST
-                        )); ?>
-                    </a>
-                </small>
-            </p>
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="input-group"><input type="text" class="form-control input-sm" value="<?= $short_url ?>"
-                                                    readonly="" onfocus="javascript:this.select()">
-                        <div class="input-group-addon copy-it" data-clipboard-text="<?= $short_url ?>"
-                             data-toggle="tooltip" data-placement="bottom" title="Copy"><i class="fa fa-clone"></i>
+                            <?= $this->Form->button(__('Submit'), ['class' => 'btn btn-default btn-sm']); ?>
                         </div>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="text-right">
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $link->alias],
-                            ['class' => 'btn btn-primary btn-sm']); ?>
-                    </div>
-                </div>
-            </div>
+                    </th>
+                </tr>
+
+                <?php foreach ($links as $link) : ?>
+                    <tr>
+                        <td>
+                            <?= $this->Form->checkbox('ids[]', [
+                                'hiddenField' => false,
+                                'label' => false,
+                                'value' => $link->id,
+                                'class' => 'allcheckbox',
+                            ]);
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            $title = $link->alias;
+                            if (!empty($link->title)) {
+                                $title = $link->title;
+                            }
+                            echo h($title);
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            $short_url = get_short_url($link->alias, $link->domain);
+                            ?>
+                            <div class="input-group">
+                                <input type="text" class="form-control input-sm" value="<?= $short_url ?>" readonly=""
+                                       onfocus="this.select()">
+                                <div class="input-group-addon copy-it" data-clipboard-text="<?= $short_url ?>"
+                                     data-toggle="tooltip" data-placement="bottom" title="<?= __('Copy') ?>">
+                                    <i class="fa fa-clone"></i>
+                                </div>
+                            </div>
+                            <div class="text-muted">
+                                <small>
+                                    <i class="fa fa-bar-chart"></i>
+                                    <a href="<?= $short_url ?>/info" target="_blank" rel="nofollow noopener noreferrer">
+                                        <?= __('Stats') ?></a> -
+
+                                    <a target="_blank" rel="nofollow noopener noreferrer" href="<?= $link->url ?>">
+                                        <?= strtoupper(parse_url($link->url, PHP_URL_HOST)); ?>
+                                    </a>
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            <?=
+                            $this->Html->link(
+                                $link->user->username,
+                                ['controller' => 'Users', 'action' => 'view', $link->user_id]
+                            );
+                            ?>
+                        </td>
+                        <td>
+                            <?= display_date_timezone($link->created); ?>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-block btn-default dropdown-toggle"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <?= __("Select Action") ?> <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Edit'),
+                                            ['action' => 'edit', $link->id]
+                                        ); ?>
+                                    </li>
+
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Activate'),
+                                            [
+                                                'action' => 'Unhide',
+                                                $link->id,
+                                                'token' => $this->request->getParam('_csrfToken'),
+                                            ],
+                                            ['confirm' => __('Are you sure?')]
+                                        ); ?>
+                                    </li>
+
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Delete'),
+                                            [
+                                                'action' => 'delete',
+                                                $link->id,
+                                                'token' => $this->request->getParam('_csrfToken'),
+                                            ],
+                                            ['confirm' => __('Are you sure?')]
+                                        ); ?>
+                                    </li>
+
+                                    <li>
+                                        <?= $this->Html->link(
+                                            __('Delete with stats'),
+                                            [
+                                                'action' => 'delete',
+                                                $link->id,
+                                                true,
+                                                'token' => $this->request->getParam('_csrfToken'),
+                                            ],
+                                            ['confirm' => __('Are you sure?')]
+                                        ); ?>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+            <?= $this->Form->end(); ?>
         </div>
     </div>
-
-<?php endforeach; ?>
-<?php unset($link); ?>
+</div>
 
 <ul class="pagination">
-    <!-- Shows the previous link -->
     <?php
+    $this->Paginator->setTemplates([
+        'ellipsis' => '<li><a href="javascript: void(0)">...</a></li>',
+    ]);
+
     if ($this->Paginator->hasPrev()) {
-        echo $this->Paginator->prev('«', array('tag' => 'li'), null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a'));
+        echo $this->Paginator->prev('«');
     }
 
-    ?>
-    <!-- Shows the page numbers -->
-    <?php //echo $this->Paginator->numbers();    ?>
-    <?php
-    echo $this->Paginator->numbers(array(
+    echo $this->Paginator->numbers([
         'modulus' => 4,
-        'separator' => '',
-        'ellipsis' => '<li><a>...</a></li>',
-        'tag' => 'li',
-        'currentTag' => 'a',
         'first' => 2,
-        'last' => 2
-    ));
+        'last' => 2,
+    ]);
 
-    ?>
-    <!-- Shows the next link -->
-    <?php
     if ($this->Paginator->hasNext()) {
-        echo $this->Paginator->next('»', array('tag' => 'li'), null,
-            array('class' => 'disabled', 'tag' => 'li', 'disabledTag' => 'a'));
+        echo $this->Paginator->next('»');
     }
-
     ?>
 </ul>
+
+<?php $this->start('scriptBottom'); ?>
+<script>
+  $('#select-all').change(function() {
+    $('.allcheckbox').prop('checked', $(this).prop('checked'));
+  });
+  $('.allcheckbox').change(function() {
+    if ($(this).prop('checked') == false) {
+      $('#select-all').prop('checked', false);
+    }
+    if ($('.allcheckbox:checked').length == $('.allcheckbox').length) {
+      $('#select-all').prop('checked', true);
+    }
+  });
+</script>
+<?php $this->end(); ?>

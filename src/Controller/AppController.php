@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Cake\Controller\Controller;
 use Cake\Event\Event;
+use Cake\I18n\Time;
 
 /**
  * Application Controller
@@ -11,7 +12,10 @@ use Cake\Event\Event;
  * Add your application-wide methods in the class below, your controllers
  * will inherit them.
  *
- * @link http://book.cakephp.org/3.0/en/controllers.html#the-app-controller
+ * @property \App\Controller\Component\CaptchaComponent $Captcha
+ *
+ * @link https://book.cakephp.org/3.0/en/controllers.html#the-app-controller
+ * @property \App\Model\Table\UsersTable $Users
  */
 class AppController extends Controller
 {
@@ -24,77 +28,57 @@ class AppController extends Controller
      * e.g. `$this->loadComponent('Security');`
      *
      * @return void
+     *
+     * @throws \Exception
      */
     public function initialize()
     {
         parent::initialize();
 
-        $this->loadComponent('Security');
-        $this->loadComponent('Csrf');
+        $this->loadComponent('RequestHandler', [
+            'enableBeforeRedirect' => false,
+        ]);
         $this->loadComponent('Flash');
+        $this->loadComponent('Security');
+        //$this->loadComponent('Csrf');
         $this->loadComponent('Auth', [
             'loginAction' => [
                 'plugin' => false,
                 'controller' => 'Users',
                 'action' => 'signin',
-                'prefix' => 'auth'
+                'prefix' => 'auth',
             ],
             'authenticate' => [
                 'Form' => [
-                    'finder' => 'auth'
+                    'finder' => 'auth',
                 ],
-                'ADmad/HybridAuth.HybridAuth' => [
-                    // All keys shown below are defaults
-                    'fields' => [
-                        'provider' => 'provider',
-                        'openid_identifier' => 'openid_identifier',
-                        'email' => 'email'
-                    ],
-                    'profileModel' => 'ADmad/HybridAuth.SocialProfiles',
-                    'profileModelFkField' => 'user_id',
-                    'userModel' => 'Users',
-                    'finder' => 'social',
-                    // The URL Hybridauth lib should redirect to after authentication.
-                    // If no value is specified you are redirect to this plugin's
-                    // HybridAuthController::authenticated() which handles persisting
-                    // user info to AuthComponent and redirection.
-                    'hauth_return_to' => null
-                ]
             ],
             'authorize' => 'Controller',
             'loginRedirect' => [
                 'plugin' => false,
                 'controller' => 'Users',
                 'action' => 'dashboard',
-                'prefix' => 'member'
+                'prefix' => 'member',
             ],
             'logoutRedirect' => [
                 'plugin' => false,
-                'controller' => 'Users',
-                'action' => 'signin',
-                'prefix' => 'auth'
-            ]
+                'controller' => 'Pages',
+                'action' => 'home',
+                'prefix' => false,
+            ],
+            'authError' => '',
         ]);
         $this->loadComponent('Paginator');
+
+        $this->_AuthenticateCookieUser();
     }
 
     public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
 
-        // Check if SSL is enabled.
-        if ($this->forceSSL()) {
-            return $this->redirect('https://' . env('SERVER_NAME') . env('REQUEST_URI'), 301);
-        }
-
-        // Check if you are on the main domain
-        if ($this->redirectMainDomain()) {
-            $protocol = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://" : "https://";
-            return $this->redirect($protocol . get_option('main_domain') . env('REQUEST_URI'), 301);
-        }
-
         // Set the frontend layout
-        $this->viewBuilder()->layout('front');
+        $this->viewBuilder()->setLayout('front');
     }
 
     /**
@@ -105,108 +89,135 @@ class AppController extends Controller
      */
     public function beforeRender(Event $event)
     {
-        if (isset($this->request->params['prefix']) && $this->request->params['prefix'] === 'admin') {
-            $this->viewBuilder()->theme(get_option('admin_theme', 'AdminlteAdminTheme'));
-        } elseif (isset($this->request->params['prefix']) &&
-            in_array($this->request->params['prefix'], ['auth', 'member'])) {
-            $this->viewBuilder()->theme(get_option('member_theme', 'AdminlteMemberTheme'));
+        if ($this->getRequest()->getParam('prefix') === 'admin') {
+            $this->viewBuilder()->setTheme(get_option('admin_theme', 'AdminlteAdminTheme'));
+        } elseif (null !== $this->getRequest()->getParam('prefix') &&
+            in_array($this->getRequest()->getParam('prefix'), ['auth', 'member'])) {
+            $this->viewBuilder()->setTheme(get_option('member_theme', 'AdminlteMemberTheme'));
         } else {
-            $this->viewBuilder()->theme(get_option('theme', 'ClassicTheme'));
+            $this->viewBuilder()->setTheme(get_option('theme', 'ClassicTheme'));
         }
     }
 
-    protected function forceSSL()
+    /**
+     * @return bool|null
+     * @throws \Exception
+     * @link https://stackoverflow.com/a/30135526/1794834
+     */
+    protected function _AuthenticateCookieUser()
     {
-        if ((bool)get_option('ssl_enable', false)) {
-            $controller = $this->request->params['controller'];
-            $action = $this->request->params['action'];
-
-            if (!(
-                (in_array($controller, ['Links']) && in_array($action, ['view', 'go', 'popad'])) ||
-                (in_array($controller, ['Tools']) && in_array($action, ['st', 'api', 'full', 'bookmarklet'])) ||
-                (in_array($controller, ['Invoices']) && in_array($action, ['ipn'])) ||
-                (in_array($controller, ['Users']) && in_array($action, ['multidomainsAuth']))
-            )
-            ) {
-                if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    protected function redirectMainDomain()
-    {
-        $main_domain = get_option('main_domain');
-
-        if (empty($main_domain)) {
-            return false;
+        if (!is_app_installed()) {
+            return null;
         }
 
-        $controller = $this->request->params['controller'];
-        $action = $this->request->params['action'];
-
-        if (!(
-            (in_array($controller, ['Links']) && in_array($action, ['view', 'go', 'popad'])) ||
-            (in_array($controller, ['Tools']) && in_array($action, ['st', 'api', 'full', 'bookmarklet'])) ||
-            (in_array($controller, ['Invoices']) && in_array($action, ['ipn'])) ||
-            (in_array($controller, ['Users']) && in_array($action, ['multidomainsAuth']))
-        )
-        ) {
-            if (env("HTTP_HOST", "") != $main_domain) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected function setLanguage()
-    {
-        if (empty(get_option('site_languages'))) {
-            return false;
+        if ($this->getResponse()->getStatusCode() !== 200) {
+            return null;
         }
 
-        $controller = $this->request->params['controller'];
-        $action = $this->request->params['action'];
-
-        if ((in_array($controller, ['Links']) && in_array($action, ['view', 'go', 'popad'])) ||
-            (in_array($controller, ['Tools']) && in_array($action, ['st', 'api', 'full', 'bookmarklet'])) ||
-            (in_array($controller, ['Invoices']) && in_array($action, ['ipn'])) ||
-            (in_array($controller, ['Users']) && in_array($action, ['multidomainsAuth']))
-        ) {
-            return false;
+        if (in_array($this->getRequest()->getParam('action'), ['multidomainsAuth', 'authDone'])) {
+            return null;
         }
 
-        if (isset($this->request->query['lang']) &&
-            in_array($this->request->query['lang'], get_site_languages(true))
-        ) {
-            if (isset($_COOKIE['lang']) && $_COOKIE['lang'] == $this->request->query['lang']) {
-                return false;
-            }
-            setcookie('lang', $this->request->query['lang'], time() + (86400 * 30 * 12), '/');
-            return true;
+        if ($this->Auth->user('id')) {
+            return null;
         }
 
-        if ((bool)get_option('language_auto_redirect', false)) {
-            if (!isset($_COOKIE['lang']) && isset($this->request->acceptLanguage()[0])) {
-                $lang = substr($this->request->acceptLanguage()[0], 0, 2);
-
-                $langs = get_site_languages(true);
-
-                $valid_langs = [];
-                foreach ($langs as $key => $value) {
-                    if (preg_match('/^' . $lang . '/', $value)) {
-                        $valid_langs[] = $value;
-                    }
-                }
-
-                if (isset($valid_langs[0])) {
-                    setcookie('lang', $valid_langs[0], time() + (86400 * 30 * 12));
-                    return true;
-                }
-            }
+        if (!isset($_COOKIE['RememberMe']) || strpos($_COOKIE['RememberMe'], ":") === false) {
+            return null;
         }
-        return false;
+
+        list($selector, $authenticator) = explode(':', $_COOKIE['RememberMe']);
+
+        $this->loadModel('Users');
+
+        /**
+         * @var \App\Model\Entity\RememberToken $rememberToken
+         */
+        $rememberToken = $this->Users->RememberTokens->find()
+            ->where([
+                'selector' => $selector,
+            ])
+            ->first();
+
+        if (!$rememberToken) {
+            unset($_COOKIE['RememberMe']);
+            setcookie('RememberMe', null, -1, '/');
+
+            return null;
+        }
+
+        if (!hash_equals($rememberToken->token, hash('sha256', base64_decode($authenticator)))) {
+            unset($_COOKIE['RememberMe']);
+            setcookie('RememberMe', null, -1, '/');
+
+            return null;
+        }
+
+        if ($rememberToken->expires->isPast()) {
+            unset($_COOKIE['RememberMe']);
+            setcookie('RememberMe', null, -1, '/');
+
+            return null;
+        }
+
+        /**
+         * @var \App\Model\Entity\User $user
+         */
+        $user = $this->Users->find()
+            ->contain(['Plans'])
+            ->where([
+                'Users.id' => $rememberToken->user_id,
+                'Users.status' => 1,
+            ])
+            ->first();
+
+        if (!$user) {
+            unset($_COOKIE['RememberMe']);
+            setcookie('RememberMe', null, -1, '/');
+
+            return null;
+        }
+
+        unset($user->password);
+        $this->Auth->setUser($user->toArray());
+
+        $selector = base64_encode(random_bytes(9));
+        $authenticator = random_bytes(33);
+        $expire = Time::now()->addYear();
+
+        setcookie(
+            'RememberMe',
+            $selector . ':' . base64_encode($authenticator),
+            $expire->timestamp,
+            '/',
+            '',
+            false, // TLS-only
+            true // http-only
+        );
+
+        $rememberToken->selector = $selector;
+        $rememberToken->token = hash('sha256', $authenticator);
+        $rememberToken->user_id = $user['id'];
+        $rememberToken->expires = $expire->toDateTimeString();
+        $this->Users->RememberTokens->save($rememberToken);
+
+        $multi_domains = get_all_domains_list();
+        unset($multi_domains[$_SERVER['HTTP_HOST']]);
+        if (count($multi_domains)) {
+            $_SESSION['Auth']['AppAuth']['Domains'] = $multi_domains;
+            $_SESSION['Auth']['AppAuth']['DomainsData'] = urlencode(data_encrypt([
+                'session_name' => session_name(),
+                'session_id' => session_id(),
+                'time' => time(),
+            ]));
+        }
+
+        $_SESSION['Auth']['AppAuth']['Cookie'] = urlencode(data_encrypt([
+            'name' => 'RememberMe',
+            'value' => $selector . ':' . base64_encode($authenticator),
+            'expire' => $expire->timestamp,
+        ]));
+
+        return true;
     }
 }

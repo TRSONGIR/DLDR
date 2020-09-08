@@ -12,22 +12,22 @@ class Version370 extends AbstractMigration
 
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
-        $this->execute('ALTER TABLE `' . $table_prefix . 'links` CHANGE `alias` '.
+        $this->execute('ALTER TABLE `' . $table_prefix . 'links` CHANGE `alias` ' .
             '`alias` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL;');
 
         $rows = [
             [
                 'name' => 'language_auto_redirect',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'invisible_reCAPTCHA_site_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'invisible_reCAPTCHA_secret_key',
-                'value' => ''
-            ]
+                'value' => '',
+            ],
         ];
 
         $this->table('options')
@@ -45,7 +45,7 @@ class Version370 extends AbstractMigration
                 'default' => 0,
                 'limit' => 2,
                 'null' => false,
-                'signed' => false
+                'signed' => false,
             ])
             ->update();
     }

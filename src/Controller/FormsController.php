@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
-use App\Controller\AppController;
 use App\Form\ContactForm;
 use Cake\Event\Event;
 
+/**
+ * @property \App\Controller\Component\CaptchaComponent $Captcha
+ * @property \Cake\ORM\Table $Forms
+ */
 class FormsController extends AppController
 {
     public function initialize()
@@ -24,46 +27,50 @@ class FormsController extends AppController
     {
         $this->autoRender = false;
 
-        $this->response->type('json');
+        $this->setResponse($this->getResponse()->withType('json'));
 
         $contact = new ContactForm();
 
-        if (!$this->request->is('ajax')) {
+        if (!$this->getRequest()->is('ajax')) {
             $content = [
                 'status' => 'error',
                 'message' => __('Bad Request.'),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
         if ((get_option('enable_captcha_contact') == 'yes') &&
             isset_captcha() &&
-            !$this->Captcha->verify($this->request->data)
+            !$this->Captcha->verify($this->getRequest()->getData())
         ) {
             $content = [
                 'status' => 'error',
                 'message' => __('The CAPTCHA was incorrect. Try again'),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
 
-        if ($contact->execute($this->request->data)) {
+        if ($contact->execute($this->getRequest()->getData())) {
             $content = [
                 'status' => 'success',
                 'message' => __('Your message has been sent!'),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         } else {
             $content = [
                 'status' => 'error',
                 //'message' => serialize($contact->errors()),
                 'message' => __('Can\'t send the message. Please try again later.'),
             ];
-            $this->response->body(json_encode($content));
-            return $this->response;
+            $this->setResponse($this->getResponse()->withStringBody(json_encode($content)));
+
+            return $this->getResponse();
         }
     }
 }

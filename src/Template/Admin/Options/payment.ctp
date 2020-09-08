@@ -1,4 +1,7 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ */
 $this->assign('title', __('Payment Settings'));
 $this->assign('description', '');
 $this->assign('content_title', __('Payment Settings'));
@@ -8,53 +11,8 @@ $this->assign('content_title', __('Payment Settings'));
     <div class="box-body">
         <?= $this->Form->create($options, [
             'id' => 'form-settings',
-            'onSubmit' => "save_settings.disabled=true; save_settings.innerHTML='" . __('Saving ...') . "'; return true;"
+            'onSubmit' => "save_settings.disabled=true; save_settings.innerHTML='" . __('Saving ...') . "'; return true;",
         ]); ?>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Currency Code') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['currency_code']['id'] . '.value', [
-                    'label' => false,
-                    'class' => 'form-control',
-                    'type' => 'text',
-                    'value' => $settings['currency_code']['value']
-                ]);
-                ?>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Currency Symbol') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['currency_symbol']['id'] . '.value', [
-                    'label' => false,
-                    'class' => 'form-control',
-                    'type' => 'text',
-                    'value' => $settings['currency_symbol']['value']
-                ]);
-                ?>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Currency Position') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['currency_position']['id'] . '.value', [
-                    'label' => false,
-                    'options' => [
-                        'before' => __('Before Price'),
-                        'after' => __('After Price')
-                    ],
-                    'value' => $settings['currency_position']['value'],
-                    'class' => 'form-control'
-                ]);
-                ?>
-            </div>
-        </div>
 
         <legend><?= __('Wallet Settings') ?></legend>
 
@@ -64,14 +22,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Wallet') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['wallet_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['wallet_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         0 => __('No'),
-                        1 => __('Yes')
+                        1 => __('Yes'),
                     ],
                     'value' => $settings['wallet_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -86,14 +44,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable PayPal') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['paypal_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['paypal_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         'no' => __('No'),
-                        'yes' => __('Yes')
+                        'yes' => __('Yes'),
                     ],
                     'value' => $settings['paypal_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -103,12 +61,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Payment Business Email') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['paypal_email']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['paypal_email']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'email',
                     'value' => $settings['paypal_email']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -118,67 +76,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable PayPal Sandbox') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['paypal_sandbox']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['paypal_sandbox']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         'no' => __('No'),
-                        'yes' => __('Yes')
+                        'yes' => __('Yes'),
                     ],
                     'value' => $settings['paypal_sandbox']['value'],
-                    'class' => 'form-control'
-                ]);
-                ?>
-            </div>
-        </div>
-		<legend><?= __('Zarinpal Settings') ?></legend>
-
-        <span class="help-block"><?= __('For setup instructions click <a href="{0}" target="_blank">here</a>.',
-                "https://www.zarinpal.com/lab/") ?></span>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Enable ZarinPal') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['zarinpal_enable']['id'] . '.value', [
-                    'label' => false,
-                    'options' => [
-                        'no' => __('No'),
-                        'yes' => __('Yes')
-                    ],
-                    'value' => $settings['zarinpal_enable']['value'],
-                    'class' => 'form-control'
-                ]);
-                ?>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Payment User Marchent') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['zarinpal_marchent']['id'] . '.value', [
-                    'label' => false,
                     'class' => 'form-control',
-                    'type' => 'text',
-                    'value' => $settings['zarinpal_marchent']['value'],
-                    'autocomplete' => 'off'
-                ]);
-                ?>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-sm-2"><?= __('Enable ZarinPal Sandbox') ?></div>
-            <div class="col-sm-10">
-                <?=
-                $this->Form->input('Options.' . $settings['zarinpal_sandbox']['id'] . '.value', [
-                    'label' => false,
-                    'options' => [
-                        'no' => __('No'),
-                        'yes' => __('Yes')
-                    ],
-                    'value' => $settings['zarinpal_sandbox']['value'],
-                    'class' => 'form-control'
                 ]);
                 ?>
             </div>
@@ -192,14 +97,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Stripe') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['stripe_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['stripe_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         0 => __('No'),
-                        1 => __('Yes')
+                        1 => __('Yes'),
                     ],
                     'value' => $settings['stripe_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -209,12 +114,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Stripe Secret Key') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['stripe_secret_key']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['stripe_secret_key']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['stripe_secret_key']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -224,12 +129,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Stripe Publishable Key') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['stripe_publishable_key']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['stripe_publishable_key']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['stripe_publishable_key']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -244,14 +149,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Payza') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payza_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payza_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         'no' => __('No'),
-                        'yes' => __('Yes')
+                        'yes' => __('Yes'),
                     ],
                     'value' => $settings['payza_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -261,12 +166,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Payza Merchant Email') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payza_email']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payza_email']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'email',
                     'value' => $settings['payza_email']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -288,14 +193,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Skrill') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['skrill_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['skrill_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         0 => __('No'),
-                        1 => __('Yes')
+                        1 => __('Yes'),
                     ],
                     'value' => $settings['skrill_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -305,12 +210,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Skrill Merchant Email') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['skrill_email']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['skrill_email']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'email',
                     'value' => $settings['skrill_email']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -320,12 +225,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Skrill Secret Word') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['skrill_secret_word']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['skrill_secret_word']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['skrill_secret_word']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -333,14 +238,14 @@ $this->assign('content_title', __('Payment Settings'));
 
         <legend><?= __('Bitcoin Processor') ?></legend>
         <?=
-        $this->Form->input('Options.' . $settings['bitcoin_processor']['id'] . '.value', [
+        $this->Form->control('Options.' . $settings['bitcoin_processor']['id'] . '.value', [
             'label' => false,
             'options' => [
                 'coinbase' => __('Coinbase'),
-                'coinpayments' => __('CoinPayments')
+                'coinpayments' => __('CoinPayments'),
             ],
             'value' => $settings['bitcoin_processor']['value'],
-            'class' => 'form-control'
+            'class' => 'form-control',
         ]);
         ?>
 
@@ -355,14 +260,14 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('Enable CoinPayments') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinpayments_enable']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinpayments_enable']['id'] . '.value', [
                         'label' => false,
                         'options' => [
                             0 => __('No'),
-                            1 => __('Yes')
+                            1 => __('Yes'),
                         ],
                         'value' => $settings['coinpayments_enable']['value'],
-                        'class' => 'form-control'
+                        'class' => 'form-control',
                     ]);
                     ?>
                 </div>
@@ -372,12 +277,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('CoinPayments Public Key') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinpayments_public_key']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinpayments_public_key']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinpayments_public_key']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -387,12 +292,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('CoinPayments Private Key') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinpayments_private_key']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinpayments_private_key']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinpayments_private_key']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -402,12 +307,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('CoinPayments Merchant Id') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinpayments_merchant_id']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinpayments_merchant_id']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinpayments_merchant_id']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -417,12 +322,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('CoinPayments IPN Secret') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinpayments_ipn_secret']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinpayments_ipn_secret']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinpayments_ipn_secret']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -440,14 +345,14 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('Enable Coinbase') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinbase_enable']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinbase_enable']['id'] . '.value', [
                         'label' => false,
                         'options' => [
                             'no' => __('No'),
-                            'yes' => __('Yes')
+                            'yes' => __('Yes'),
                         ],
                         'value' => $settings['coinbase_enable']['value'],
-                        'class' => 'form-control'
+                        'class' => 'form-control',
                     ]);
                     ?>
                 </div>
@@ -457,12 +362,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('Coinbase API Key') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinbase_api_key']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinbase_api_key']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinbase_api_key']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -472,12 +377,12 @@ $this->assign('content_title', __('Payment Settings'));
                 <div class="col-sm-2"><?= __('Coinbase API Secret') ?></div>
                 <div class="col-sm-10">
                     <?=
-                    $this->Form->input('Options.' . $settings['coinbase_api_secret']['id'] . '.value', [
+                    $this->Form->control('Options.' . $settings['coinbase_api_secret']['id'] . '.value', [
                         'label' => false,
                         'class' => 'form-control',
                         'type' => 'text',
                         'value' => $settings['coinbase_api_secret']['value'],
-                        'autocomplete' => 'off'
+                        'autocomplete' => 'off',
                     ]);
                     ?>
                 </div>
@@ -493,14 +398,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Webmoney') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['webmoney_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['webmoney_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         'no' => __('No'),
-                        'yes' => __('Yes')
+                        'yes' => __('Yes'),
                     ],
                     'value' => $settings['webmoney_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -510,12 +415,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Webmoney Merchant Purse') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['webmoney_merchant_purse']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['webmoney_merchant_purse']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['webmoney_merchant_purse']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -530,14 +435,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Perfect Money') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['perfectmoney_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['perfectmoney_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         0 => __('No'),
-                        1 => __('Yes')
+                        1 => __('Yes'),
                     ],
                     'value' => $settings['perfectmoney_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -547,12 +452,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Perfect Money Payee Account') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['perfectmoney_account']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['perfectmoney_account']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['perfectmoney_account']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -562,12 +467,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Perfect Money Alternate Passphrase') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['perfectmoney_passphrase']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['perfectmoney_passphrase']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['perfectmoney_passphrase']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -582,14 +487,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Payeer') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payeer_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payeer_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         0 => __('No'),
-                        1 => __('Yes')
+                        1 => __('Yes'),
                     ],
                     'value' => $settings['payeer_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -599,12 +504,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Payeer Merchant Id') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payeer_merchant_id']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payeer_merchant_id']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['payeer_merchant_id']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -614,12 +519,12 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Payeer Secret Key') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payeer_secret_key']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payeer_secret_key']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['payeer_secret_key']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -629,12 +534,125 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Payeer Encryption Key') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['payeer_encryption_key']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['payeer_encryption_key']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'text',
                     'value' => $settings['payeer_encryption_key']['value'],
-                    'autocomplete' => 'off'
+                    'autocomplete' => 'off',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <legend><?= __('Paystack Settings') ?></legend>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Enable Paystack') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paystack_enable']['id'] . '.value', [
+                    'label' => false,
+                    'options' => [
+                        0 => __('No'),
+                        1 => __('Yes'),
+                    ],
+                    'value' => $settings['paystack_enable']['value'],
+                    'class' => 'form-control',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Paystack Secret Key') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paystack_secret_key']['id'] . '.value', [
+                    'label' => false,
+                    'class' => 'form-control',
+                    'type' => 'text',
+                    'value' => $settings['paystack_secret_key']['value'],
+                    'autocomplete' => 'off',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <legend><?= __('Paytm Settings') ?></legend>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Enable Paytm') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paytm_enable']['id'] . '.value', [
+                    'label' => false,
+                    'options' => [
+                        0 => __('No'),
+                        1 => __('Yes'),
+                    ],
+                    'value' => $settings['paytm_enable']['value'],
+                    'class' => 'form-control',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Paytm Merchant Key') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paytm_merchant_key']['id'] . '.value', [
+                    'label' => false,
+                    'class' => 'form-control',
+                    'type' => 'text',
+                    'value' => $settings['paytm_merchant_key']['value'],
+                    'autocomplete' => 'off',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Paytm Merchant MID') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paytm_merchant_mid']['id'] . '.value', [
+                    'label' => false,
+                    'class' => 'form-control',
+                    'type' => 'text',
+                    'value' => $settings['paytm_merchant_mid']['value'],
+                    'autocomplete' => 'off',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Paytm Merchant Website') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paytm_merchant_website']['id'] . '.value', [
+                    'label' => false,
+                    'class' => 'form-control',
+                    'type' => 'text',
+                    'value' => $settings['paytm_merchant_website']['value'],
+                    'autocomplete' => 'off',
+                ]);
+                ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-2"><?= __('Paytm Industry Type') ?></div>
+            <div class="col-sm-10">
+                <?=
+                $this->Form->control('Options.' . $settings['paytm_industry_type']['id'] . '.value', [
+                    'label' => false,
+                    'class' => 'form-control',
+                    'type' => 'text',
+                    'value' => $settings['paytm_industry_type']['value'],
+                    'autocomplete' => 'off',
                 ]);
                 ?>
             </div>
@@ -646,14 +664,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Enable Bank Transfer') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['banktransfer_enable']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['banktransfer_enable']['id'] . '.value', [
                     'label' => false,
                     'options' => [
                         'no' => __('No'),
-                        'yes' => __('Yes')
+                        'yes' => __('Yes'),
                     ],
                     'value' => $settings['banktransfer_enable']['value'],
-                    'class' => 'form-control'
+                    'class' => 'form-control',
                 ]);
                 ?>
             </div>
@@ -663,14 +681,14 @@ $this->assign('content_title', __('Payment Settings'));
             <div class="col-sm-2"><?= __('Bank Transfer Instructions') ?></div>
             <div class="col-sm-10">
                 <?=
-                $this->Form->input('Options.' . $settings['banktransfer_instructions']['id'] . '.value', [
+                $this->Form->control('Options.' . $settings['banktransfer_instructions']['id'] . '.value', [
                     'label' => false,
                     'class' => 'form-control',
                     'type' => 'textarea',
-                    'value' => $settings['banktransfer_instructions']['value']
+                    'value' => $settings['banktransfer_instructions']['value'],
                 ]);
                 ?>
-                <span class="help-block"><?= __("You can use these placeholders [invoice_id], ".
+                <span class="help-block"><?= __("You can use these placeholders [invoice_id], " .
                         "[invoice_amount], [invoice_description]") ?></span>
             </div>
         </div>

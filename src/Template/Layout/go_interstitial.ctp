@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\View\AppView $this
+ */
+?>
 <?php $user = $this->request->session()->read('Auth.User'); ?>
 <!DOCTYPE html>
 <html lang="<?= locale_get_primary_language(null) ?>">
@@ -8,11 +13,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="<?= h($this->fetch('description')); ?>">
+    <meta name="keywords" content="<?= h(get_option('seo_keywords')); ?>">
     <meta name="og:title" content="<?= h($this->fetch('og_title')); ?>">
     <meta name="og:description" content="<?= h($this->fetch('og_description')); ?>">
     <meta property="og:image" content="<?= h($this->fetch('og_image')); ?>"/>
 
-    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic" rel="stylesheet">
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic"
+          rel="stylesheet">
 
     <?php
     echo $this->Html->meta('icon');
@@ -62,14 +69,14 @@
                             }
                             ?>
                             <a class="navbar-brand <?= $class ?>"
-                               href="<?= $this->Url->build('/'); ?>"><?= $logo['content'] ?></a>
+                               href="<?= build_main_domain_url('/'); ?>"><?= $logo['content'] ?></a>
                         </div>
                     </div>
                     <div class="hidden-xs col-sm-6">
-                        <?php if (!empty($interstitial_ads)) : ?>
+                        <?php if (!empty($interstitial_banner_ad)) : ?>
                             <div class="banner banner-468x60">
                                 <div class="banner-inner">
-                                    <?= $interstitial_ads; ?>
+                                    <?= $interstitial_banner_ad; ?>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -97,7 +104,7 @@
 
 <?= $this->element('js_vars'); ?>
 
-<?= $this->Assets->script('/js/ads.js'); ?>
+<script data-cfasync="false" src="<?= $this->Assets->url('/js/ads.js') ?>"></script>
 
 <?= $this->Assets->script('/vendor/jquery.min.js?ver=' . APP_VERSION); ?>
 <?= $this->Assets->script('/vendor/bootstrap/js/bootstrap.min.js?ver=' . APP_VERSION); ?>
@@ -106,15 +113,22 @@
 <?= $this->Assets->script('/vendor/dashboard/js/app.min.js?ver=' . APP_VERSION); ?>
 
 <?php if (in_array(get_option('captcha_type', 'recaptcha'), ['recaptcha', 'invisible-recaptcha'])) : ?>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
+    <script src="https://www.recaptcha.net/recaptcha/api.js?onload=onloadRecaptchaCallback&render=explicit"
             async defer></script>
 <?php endif; ?>
 
 <?php if (get_option('captcha_type') == 'solvemedia') : ?>
-    <?php
-    $sm_server = (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") ? "http://api" : "https://api-secure";
-    ?>
-    <script type="text/javascript" src="<?= $sm_server ?>.solvemedia.com/papi/challenge.ajax"></script>
+    <script language="javascript" type="text/javascript">
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+
+      if (location.protocol === 'https:') {
+        script.src = 'https://api-secure.solvemedia.com/papi/challenge.ajax';
+      } else {
+        script.src = 'http://api.solvemedia.com/papi/challenge.ajax';
+      }
+      document.body.appendChild(script);
+    </script>
 <?php endif; ?>
 
 <?= $this->fetch('scriptBottom') ?>

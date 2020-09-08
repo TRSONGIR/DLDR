@@ -12,16 +12,16 @@ class Version140 extends AbstractMigration
 
         $options = $this->table('options');
 
-        $rows = array(
-            array(
+        $rows = [
+            [
                 'name' => 'email_smtp_tls',
-                'value' => 'false'
-            ),
-            array(
+                'value' => 'false',
+            ],
+            [
                 'name' => 'currency_symbol',
-                'value' => '$'
-            )
-        );
+                'value' => '$',
+            ],
+        ];
 
         $options->insert($rows);
         $options->saveData();
@@ -55,10 +55,10 @@ class Version140 extends AbstractMigration
 
         $table_prefix = $this->getAdapter()->getOption('table_prefix');
 
-        $items = implode(",", array(
+        $items = implode(",", [
             "'email_smtp_tls'",
-            "'currency_symbol'"
-        ));
+            "'currency_symbol'",
+        ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
         $this->table('campaigns')

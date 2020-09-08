@@ -16,94 +16,94 @@ class Version350 extends AbstractMigration
             ->changeColumn('name', 'string', [
                 'default' => '',
                 'limit' => 100,
-                'null' => false
+                'null' => false,
             ])
             ->update();
 
         $rows = [
             [
                 'name' => 'social_login_facebook',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'social_login_facebook_app_id',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'social_login_facebook_app_secret',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'social_login_twitter',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'social_login_twitter_api_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'social_login_twitter_api_secret',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'social_login_google',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'social_login_google_client_id',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'social_login_google_client_secret',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'blog_enable',
-                'value' => 0
+                'value' => 1,
             ],
             [
                 'name' => 'blog_comments_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'disqus_shortname',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'ssl_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'google_safe_browsing_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'phishtank_key',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'close_registration',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'enable_captcha_shortlink_anonymous',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'skrill_enable',
-                'value' => 0
+                'value' => 0,
             ],
             [
                 'name' => 'skrill_email',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'skrill_secret_word',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'wallet_enable',
-                'value' => 0
+                'value' => 0,
             ],
         ];
 
@@ -133,117 +133,117 @@ class Version350 extends AbstractMigration
             ->addColumn('provider', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => false
+                'null' => false,
             ])
             ->addColumn('identifier', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => false
+                'null' => false,
             ])
             ->addColumn('profile_url', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('website_url', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('photo_url', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('display_name', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('description', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('first_name', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('last_name', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('gender', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('language', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('age', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('birth_day', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('birth_month', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('birth_year', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('email', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('email_verified', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('phone', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('address', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('country', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('region', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('city', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('zip', 'string', [
                 'default' => null,
                 'limit' => 255,
-                'null' => true
+                'null' => true,
             ])
             ->addColumn('created', 'datetime', [
                 'default' => null,
@@ -304,9 +304,7 @@ class Version350 extends AbstractMigration
             ->addIndex(['published', 'id'], ['name' => 'idx_published_id'])
             ->create();
 
-        $this->table('announcements',[
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('announcements')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -354,14 +352,14 @@ class Version350 extends AbstractMigration
                 'limit' => 10,
                 'null' => false,
                 'signed' => false,
-                'after' => 'user_id'
+                'after' => 'user_id',
             ])
             ->addColumn('referral_earn', 'float', [
                 'default' => 0,
                 'null' => false,
                 'precision' => 50,
                 'scale' => 6,
-                'after' => 'publisher_earn'
+                'after' => 'publisher_earn',
             ])
             ->changeColumn('user_agent', 'text', [
                 'default' => null,
@@ -379,7 +377,7 @@ class Version350 extends AbstractMigration
                 'precision' => 50,
                 'scale' => 6,
                 'signed' => false,
-                'after' => 'activation_key'
+                'after' => 'activation_key',
             ])
             ->update();
     }
@@ -411,7 +409,7 @@ class Version350 extends AbstractMigration
             "'skrill_enable'",
             "'skrill_email'",
             "'skrill_secret_word'",
-            "'wallet_enable'"
+            "'wallet_enable'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 
@@ -419,7 +417,7 @@ class Version350 extends AbstractMigration
             ->changeColumn('name', 'string', [
                 'default' => '',
                 'limit' => 30,
-                'null' => false
+                'null' => false,
             ])
             ->removeIndexByName('idx_name')
             ->addIndex('name', ['name' => 'idx_name'])

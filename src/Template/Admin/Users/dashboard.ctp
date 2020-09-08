@@ -1,19 +1,14 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
+?>
+<?php
 $this->assign('title', __('Dashboard'));
 $this->assign('description', '');
 $this->assign('content_title', __('Dashboard'));
 ?>
-
-<?php if (count($domains_auth_urls) > 0) : ?>
-    <div style="height: 5px; width: 5px; position: absolute;">
-        <?php foreach ($domains_auth_urls as $url) : ?>
-            <img src="<?= $url ?>"/>
-        <?php endforeach; ?>
-        <?php
-        $_SESSION['Auth']['User']['domains_auth'] = 'done'
-        ?>
-    </div>
-<?php endif; ?>
 
 <div class="text-center">
     <div style="display: inline-block;">
@@ -25,13 +20,13 @@ $this->assign('content_title', __('Dashboard'));
         ?>
 
         <?=
-        $this->Form->input('month', [
+        $this->Form->control('month', [
             'label' => false,
             'options' => $year_month,
-            'value' => (isset($this->request->query['month'])) ? h($this->request->query['month']) : '',
+            'value' => ($this->request->getQuery('month')) ? h($this->request->getQuery('month')) : '',
             'class' => 'form-control input-lg',
             'onchange' => 'this.form.submit();',
-            'style' => 'width: 300px;'
+            'style' => 'width: 300px;',
         ]);
         ?>
 
@@ -106,6 +101,9 @@ $this->assign('content_title', __('Dashboard'));
     </div>
     <div class="box-body no-padding">
         <div id="chart_div" style="position: relative; height: 300px; width: 100%;"></div>
+        <div class="small text-right" style="padding-right: 10px;">
+            <?= __('Data is reported in {0} timezone', get_option('timezone', 'UTC')) ?>
+        </div>
         <div style="height: 300px;overflow: auto;">
             <table class="table table-hover table-striped">
                 <thead>
@@ -122,10 +120,9 @@ $this->assign('content_title', __('Dashboard'));
                         <td><?= $key ?></td>
                         <td><?= $value['view'] ?></td>
                         <td><?= display_price_currency($value['publisher_earnings']); ?></td>
-                        <td><?= (!empty($value['view'])) ? display_price_currency(
-                                ($value['publisher_earnings'] / $value['view']) * 1000,
-                                ['precision' => 2]
-                            ) : 0 ?></td>
+                        <td>
+                            <?= (!empty($value['view'])) ? display_price_currency(($value['publisher_earnings'] / $value['view']) * 1000) : 0 ?>
+                        </td>
                         <td><?= display_price_currency($value['referral_earnings']); ?></td>
                     </tr>
                 <?php endforeach; ?>
@@ -145,7 +142,7 @@ $this->assign('content_title', __('Dashboard'));
         <table class="table table-hover table-striped">
             <thead>
             <tr>
-                <th><?= __('Date') ?></th>
+                <th><?= __('Alias') ?></th>
                 <th><?= __('Views') ?></th>
                 <th><?= __('Link Earnings') ?></th>
             </tr>
@@ -180,23 +177,22 @@ $this->assign('content_title', __('Dashboard'));
 
 <?php $this->start('scriptBottom'); ?>
 
-<link rel="stylesheet" href="//cdn.rawgit.com/almasaeed2010/AdminLTE/v2.3.11/plugins/morris/morris.css">
-<script src="//cdn.rawgit.com/DmitryBaranovskiy/raphael/v2.1.0/raphael-min.js"></script>
-<script src="//cdn.rawgit.com/almasaeed2010/AdminLTE/v2.3.11/plugins/morris/morris.min.js"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/almasaeed2010/AdminLTE@v2.3.11/plugins/morris/morris.css">
+<script src="https://cdn.jsdelivr.net/gh/DmitryBaranovskiy/raphael@v2.1.0/raphael-min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/almasaeed2010/AdminLTE@v2.3.11/plugins/morris/morris.min.js"
         type="text/javascript"></script>
 
 <script>
-  jQuery(document).ready(function () {
+  jQuery(document).ready(function() {
     new Morris.Line({
       element: 'chart_div',
       resize: true,
       data: [
-            <?php
-            foreach ($CurrentMonthDays as $key => $value) {
-                $date = date("Y-m-d", strtotime($key));
-                echo '{date: "' . $date . '", views: ' . $value['view'] . '},';
-            }
-            ?>
+          <?php
+          foreach ($CurrentMonthDays as $key => $value) {
+              echo '{date: "' . $key . '", views: ' . $value['view'] . '},';
+          }
+          ?>
       ],
       xkey: 'date',
       xLabels: 'day',
@@ -205,10 +201,9 @@ $this->assign('content_title', __('Dashboard'));
       lineColors: ['#3c8dbc'],
       lineWidth: 2,
       hideHover: 'auto',
-      smooth: false
-    })
-  })
+      smooth: false,
+    });
+  });
 </script>
-
 
 <?php $this->end(); ?>

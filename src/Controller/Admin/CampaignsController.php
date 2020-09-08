@@ -2,9 +2,12 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
-use Cake\Network\Exception\NotFoundException;
+use Cake\Http\Exception\NotFoundException;
 
+/**
+ * @property \App\Model\Table\CampaignsTable $Campaigns
+ * @property \App\Model\Table\StatisticsTable $Statistics
+ */
 class CampaignsController extends AppAdminController
 {
     public function index()
@@ -14,19 +17,19 @@ class CampaignsController extends AppAdminController
         $filter_fields = ['id', 'user_id', 'status', 'ad_type', 'name', 'other_fields'];
 
         //Transform POST into GET
-        if ($this->request->is(['post', 'put']) && isset($this->request->data['Filter'])) {
+        if ($this->getRequest()->is(['post', 'put']) && isset($this->getRequest()->data['Filter'])) {
             $filter_url = [];
 
-            $filter_url['controller'] = $this->request->params['controller'];
+            $filter_url['controller'] = $this->getRequest()->params['controller'];
 
-            $filter_url['action'] = $this->request->params['action'];
+            $filter_url['action'] = $this->getRequest()->params['action'];
 
             // We need to overwrite the page every time we change the parameters
             $filter_url['page'] = 1;
 
             // for each filter we will add a GET parameter for the generated url
-            foreach ($this->request->data['Filter'] as $name => $value) {
-                if (in_array($name, $filter_fields) && $value) {
+            foreach ($this->getRequest()->data['Filter'] as $name => $value) {
+                if (in_array($name, $filter_fields) && strlen($value)) {
                     // You might want to sanitize the $value here
                     // or even do a urlencode to be sure
                     $filter_url[$name] = urlencode($value);
@@ -37,7 +40,7 @@ class CampaignsController extends AppAdminController
             return $this->redirect($filter_url);
         } else {
             // Inspect all the named parameters to apply the filters
-            foreach ($this->request->query as $param_name => $value) {
+            foreach ($this->getRequest()->getQuery() as $param_name => $value) {
                 $value = urldecode($value);
                 if (in_array($param_name, $filter_fields)) {
                     if (in_array($param_name, ['name'])) {
@@ -60,7 +63,7 @@ class CampaignsController extends AppAdminController
                         }
                         $conditions['Campaigns.' . $param_name] = $value;
                     }
-                    $this->request->data['Filter'][$param_name] = $value;
+                    $this->getRequest()->data['Filter'][$param_name] = $value;
                 }
             }
         }
@@ -155,54 +158,52 @@ class CampaignsController extends AppAdminController
 
     public function createInterstitial()
     {
-        if ($this->request->is(['get']) && empty($this->request->query['traffic_source'])) {
+        if ($this->getRequest()->is(['get']) && empty($this->getRequest()->getQuery('traffic_source'))) {
             return null;
         }
 
-        $traffic_source = $this->request->query['traffic_source'];
+        $traffic_source = $this->getRequest()->getQuery('traffic_source');
         $interstitial_price = get_option('interstitial_price');
 
         $campaign = $this->Campaigns->newEntity(null, ['associated' => ['CampaignItems']]);
         $this->set('campaign', $campaign);
 
-        $users = $this->Campaigns->Users->find('list', [
-            'keyField' => 'id',
-            'valueField' => 'username'
-        ]);
-        $this->set('users', $users);
-
-        if ($this->request->is('post')) {
+        if ($this->getRequest()->is('post')) {
             $campaign->ad_type = 1;
 
-            $this->request->data['price'] = 0;
+            $this->getRequest()->data['price'] = 0;
 
-            foreach ($this->request->data['campaign_items'] as $key => $value) {
+            foreach ($this->getRequest()->data['campaign_items'] as $key => $value) {
                 if (empty($value['purchase'])) {
-                    unset($this->request->data['campaign_items'][$key]);
+                    unset($this->getRequest()->data['campaign_items'][$key]);
                     continue;
                 }
 
-                $country = $this->request->data['campaign_items'][$key]['country'];
+                $country = $this->getRequest()->data['campaign_items'][$key]['country'];
 
-                $this->request->data['campaign_items'][$key]['advertiser_price'] =
-                    $interstitial_price[$country][$traffic_source]['advertiser'];
+                $this->getRequest()->data['campaign_items'][$key]['advertiser_price'] =
+                    price_database_format($interstitial_price[$country][$traffic_source]['advertiser']);
 
-                $this->request->data['campaign_items'][$key]['publisher_price'] =
-                    $interstitial_price[$country][$traffic_source]['publisher'];
+                $this->getRequest()->data['campaign_items'][$key]['publisher_price'] =
+                    price_database_format($interstitial_price[$country][$traffic_source]['publisher']);
 
-                $this->request->data['price'] +=
-                    $value['purchase'] * $this->request->data['campaign_items'][$key]['advertiser_price'];
+                $this->getRequest()->data['price'] +=
+                    $value['purchase'] * $this->getRequest()->data['campaign_items'][$key]['advertiser_price'];
+
+                $this->getRequest()->data['price'] = price_database_format($this->getRequest()->data['price']);
             }
 
-            if (count($this->request->data['campaign_items']) == 0) {
+            if (count($this->getRequest()->data['campaign_items']) == 0) {
                 $this->Flash->error(__('You must purchase at least from one country.'));
+
                 return null;
             }
 
-            $campaign = $this->Campaigns->patchEntity($campaign, $this->request->data);
+            $campaign = $this->Campaigns->patchEntity($campaign, $this->getRequest()->data);
 
             if ($this->Campaigns->save($campaign)) {
                 $this->Flash->success(__('Your campaign has been created.'));
+
                 return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('Unable to create your campaign.'));
@@ -213,54 +214,52 @@ class CampaignsController extends AppAdminController
 
     public function createBanner()
     {
-        if ($this->request->is(['get']) && empty($this->request->query['traffic_source'])) {
+        if ($this->getRequest()->is(['get']) && empty($this->getRequest()->getQuery('traffic_source'))) {
             return null;
         }
 
-        $traffic_source = $this->request->query['traffic_source'];
+        $traffic_source = $this->getRequest()->getQuery('traffic_source');
         $banner_price = get_option('banner_price');
 
         $campaign = $this->Campaigns->newEntity(null, ['associated' => ['CampaignItems']]);
         $this->set('campaign', $campaign);
 
-        $users = $this->Campaigns->Users->find('list', [
-            'keyField' => 'id',
-            'valueField' => 'username'
-        ]);
-        $this->set('users', $users);
-
-        if ($this->request->is('post')) {
+        if ($this->getRequest()->is('post')) {
             $campaign->ad_type = 2;
 
-            $this->request->data['price'] = 0;
+            $this->getRequest()->data['price'] = 0;
 
-            foreach ($this->request->data['campaign_items'] as $key => $value) {
+            foreach ($this->getRequest()->data['campaign_items'] as $key => $value) {
                 if (empty($value['purchase'])) {
-                    unset($this->request->data['campaign_items'][$key]);
+                    unset($this->getRequest()->data['campaign_items'][$key]);
                     continue;
                 }
 
-                $country = $this->request->data['campaign_items'][$key]['country'];
+                $country = $this->getRequest()->data['campaign_items'][$key]['country'];
 
-                $this->request->data['campaign_items'][$key]['advertiser_price'] =
-                    $banner_price[$country][$traffic_source]['advertiser'];
+                $this->getRequest()->data['campaign_items'][$key]['advertiser_price'] =
+                    price_database_format($banner_price[$country][$traffic_source]['advertiser']);
 
-                $this->request->data['campaign_items'][$key]['publisher_price'] =
-                    $banner_price[$country][$traffic_source]['publisher'];
+                $this->getRequest()->data['campaign_items'][$key]['publisher_price'] =
+                    price_database_format($banner_price[$country][$traffic_source]['publisher']);
 
-                $this->request->data['price'] +=
-                    $value['purchase'] * $this->request->data['campaign_items'][$key]['advertiser_price'];
+                $this->getRequest()->data['price'] +=
+                    $value['purchase'] * $this->getRequest()->data['campaign_items'][$key]['advertiser_price'];
+
+                $this->getRequest()->data['price'] = price_database_format($this->getRequest()->data['price']);
             }
 
-            if (count($this->request->data['campaign_items']) == 0) {
+            if (count($this->getRequest()->data['campaign_items']) == 0) {
                 $this->Flash->error(__('You must purchase at least from one country.'));
+
                 return null;
             }
 
-            $campaign = $this->Campaigns->patchEntity($campaign, $this->request->data);
+            $campaign = $this->Campaigns->patchEntity($campaign, $this->getRequest()->data);
 
             if ($this->Campaigns->save($campaign)) {
                 $this->Flash->success(__('Your campaign has been created.'));
+
                 return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('Unable to create your campaign.'));
@@ -271,54 +270,52 @@ class CampaignsController extends AppAdminController
 
     public function createPopup()
     {
-        if ($this->request->is(['get']) && empty($this->request->query['traffic_source'])) {
+        if ($this->getRequest()->is(['get']) && empty($this->getRequest()->getQuery('traffic_source'))) {
             return null;
         }
 
-        $traffic_source = $this->request->query['traffic_source'];
+        $traffic_source = $this->getRequest()->getQuery('traffic_source');
         $popup_price = get_option('popup_price');
 
         $campaign = $this->Campaigns->newEntity(null, ['associated' => ['CampaignItems']]);
         $this->set('campaign', $campaign);
 
-        $users = $this->Campaigns->Users->find('list', [
-            'keyField' => 'id',
-            'valueField' => 'username'
-        ]);
-        $this->set('users', $users);
-
-        if ($this->request->is('post')) {
+        if ($this->getRequest()->is('post')) {
             $campaign->ad_type = 3;
 
-            $this->request->data['price'] = 0;
+            $this->getRequest()->data['price'] = 0;
 
-            foreach ($this->request->data['campaign_items'] as $key => $value) {
+            foreach ($this->getRequest()->data['campaign_items'] as $key => $value) {
                 if (empty($value['purchase'])) {
-                    unset($this->request->data['campaign_items'][$key]);
+                    unset($this->getRequest()->data['campaign_items'][$key]);
                     continue;
                 }
 
-                $country = $this->request->data['campaign_items'][$key]['country'];
+                $country = $this->getRequest()->data['campaign_items'][$key]['country'];
 
-                $this->request->data['campaign_items'][$key]['advertiser_price'] =
-                    $popup_price[$country][$traffic_source]['advertiser'];
+                $this->getRequest()->data['campaign_items'][$key]['advertiser_price'] =
+                    price_database_format($popup_price[$country][$traffic_source]['advertiser']);
 
-                $this->request->data['campaign_items'][$key]['publisher_price'] =
-                    $popup_price[$country][$traffic_source]['publisher'];
+                $this->getRequest()->data['campaign_items'][$key]['publisher_price'] =
+                    price_database_format($popup_price[$country][$traffic_source]['publisher']);
 
-                $this->request->data['price'] +=
-                    $value['purchase'] * $this->request->data['campaign_items'][$key]['advertiser_price'];
+                $this->getRequest()->data['price'] +=
+                    $value['purchase'] * $this->getRequest()->data['campaign_items'][$key]['advertiser_price'];
+
+                $this->getRequest()->data['price'] = price_database_format($this->getRequest()->data['price']);
             }
 
-            if (count($this->request->data['campaign_items']) == 0) {
+            if (count($this->getRequest()->data['campaign_items']) == 0) {
                 $this->Flash->error(__('You must purchase at least from one country.'));
+
                 return null;
             }
 
-            $campaign = $this->Campaigns->patchEntity($campaign, $this->request->data);
+            $campaign = $this->Campaigns->patchEntity($campaign, $this->getRequest()->data);
 
             if ($this->Campaigns->save($campaign)) {
                 $this->Flash->success(__('Your campaign has been created.'));
+
                 return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('Unable to create your campaign.'));
@@ -342,23 +339,19 @@ class CampaignsController extends AppAdminController
             throw new NotFoundException(__('Invalid campaign'));
         }
 
-        $users = $this->Campaigns->Users->find('list', [
-            'keyField' => 'id',
-            'valueField' => 'username'
-        ]);
-
-        if ($this->request->is(['post', 'put'])) {
+        if ($this->getRequest()->is(['post', 'put'])) {
             /*
-            $this->request->data['price'] = 0;
+            $this->getRequest()->data['price'] = 0;
 
-            foreach ($this->request->data['campaign_items'] as $key => $value) {
-                $this->request->data['price'] += $value['purchase'] * $value['advertiser_price'];
+            foreach ($this->getRequest()->data['campaign_items'] as $key => $value) {
+                $this->getRequest()->data['price'] += $value['purchase'] * $value['advertiser_price'];
             }
             */
 
-            $this->Campaigns->patchEntity($campaign, $this->request->data);
+            $this->Campaigns->patchEntity($campaign, $this->getRequest()->getData());
             if ($this->Campaigns->save($campaign)) {
                 $this->Flash->success(__('Campaign has been updated.'));
+
                 return $this->redirect(['action' => 'edit', $id]);
             } else {
                 $this->Flash->error(__('Unable to update campaign.'));
@@ -366,12 +359,11 @@ class CampaignsController extends AppAdminController
         }
 
         $this->set('campaign', $campaign);
-        $this->set('users', $users);
     }
 
     public function pause($id)
     {
-        $this->request->allowMethod(['post', 'put']);
+        $this->getRequest()->allowMethod(['post', 'put']);
 
         $campaign = $this->Campaigns->findById($id)
             ->where(['status' => 1])
@@ -379,6 +371,7 @@ class CampaignsController extends AppAdminController
 
         if (!$campaign) {
             $this->Flash->success(__('Campaign not found'));
+
             return $this->redirect(['action' => 'index']);
         }
 
@@ -390,7 +383,7 @@ class CampaignsController extends AppAdminController
 
     public function resume($id)
     {
-        $this->request->allowMethod(['post', 'put']);
+        $this->getRequest()->allowMethod(['post', 'put']);
 
         $campaign = $this->Campaigns->findById($id)
             ->where(['status' => 2])
@@ -398,11 +391,31 @@ class CampaignsController extends AppAdminController
 
         if (!$campaign) {
             $this->Flash->success(__('Campaign not found'));
+
             return $this->redirect(['action' => 'index']);
         }
 
         $campaign->status = 1;
         $this->Campaigns->save($campaign);
+
+        return $this->redirect(['action' => 'index']);
+    }
+
+    public function delete($id, $views = false)
+    {
+        $this->getRequest()->allowMethod(['post', 'delete']);
+
+        $campaign = $this->Campaigns->findById($id)->first();
+
+        if ($this->Campaigns->delete($campaign)) {
+            $this->Campaigns->CampaignItems->deleteAll(['campaign_id' => $id]);
+
+            if ($views) {
+                $this->Campaigns->Statistics->deleteAll(['campaign_id' => $id]);
+            }
+
+            $this->Flash->success(__('The campaign with id: {0} has been deleted.', $id));
+        }
 
         return $this->redirect(['action' => 'index']);
     }

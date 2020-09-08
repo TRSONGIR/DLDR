@@ -1,4 +1,8 @@
 <?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Link $link
+ */
 $this->assign('title', __('Edit Link: {0}', $link->alias));
 $this->assign('description', '');
 $this->assign('content_title', __('Edit Link: {0}', $link->alias));
@@ -12,38 +16,52 @@ $this->assign('content_title', __('Edit Link: {0}', $link->alias));
         <?= $this->Form->hidden('id'); ?>
 
         <?=
-        $this->Form->input('status', [
+        $this->Form->control('status', [
             'label' => __('Status'),
             'options' => [
                 1 => __('Active'),
                 2 => __('Hidden'),
-                3 => __('Inactive')
+                3 => __('Inactive'),
             ],
-            'class' => 'form-control'
+            'class' => 'form-control',
         ]);
         ?>
 
         <?=
-        $this->Form->input('url', [
+        $this->Form->control('url', [
             'label' => __('Long URL'),
             'class' => 'form-control',
-            'type' => 'url'
+            'type' => 'url',
         ]);
         ?>
 
         <?=
-        $this->Form->input('title', [
+        $this->Form->control('title', [
             'label' => __('Title'),
             'class' => 'form-control',
-            'type' => 'text'
+            'type' => 'text',
         ]);
         ?>
 
         <?=
-        $this->Form->input('description', [
+        $this->Form->control('description', [
             'label' => __('Description'),
             'class' => 'form-control',
-            'type' => 'textarea'
+            'type' => 'textarea',
+        ]);
+        ?>
+
+        <?=
+        $this->Form->control('expiration', [
+            'label' => __('Expiration date'),
+            'class' => 'form-control',
+            'type' => 'datetime',
+            'default' => null,
+            'empty' => true,
+            'value' => null,
+            'minYear' => date('Y'),
+            'maxYear' => date('Y') + 10,
+            'orderYear' => 'asc',
         ]);
         ?>
 
@@ -51,11 +69,11 @@ $this->assign('content_title', __('Edit Link: {0}', $link->alias));
         $ads_options = get_allowed_ads();
 
         if (count($ads_options) > 1) {
-            echo $this->Form->input('ad_type', [
+            echo $this->Form->control('ad_type', [
                 'label' => __('Advertising Type'),
                 'options' => $ads_options,
                 //'empty'   => __( 'Choose' ),
-                'class' => 'form-control input-sm'
+                'class' => 'form-control input-sm',
             ]);
         }
         ?>

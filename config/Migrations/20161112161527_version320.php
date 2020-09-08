@@ -1,4 +1,5 @@
 <?php
+
 use Migrations\AbstractMigration;
 
 class Version320 extends AbstractMigration
@@ -14,47 +15,47 @@ class Version320 extends AbstractMigration
         $rows = [
             [
                 'name' => 'site_languages',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'disable_meta_home',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'disable_meta_member',
-                'value' => 'no'
+                'value' => 'no',
             ],
             [
                 'name' => 'disable_meta_api',
-                'value' => 'yes'
+                'value' => 'yes',
             ],
             [
                 'name' => 'main_domain',
-                'value' => env("HTTP_HOST", "")
+                'value' => env("HTTP_HOST", ""),
             ],
             [
                 'name' => 'default_short_domain',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'multi_domains',
-                'value' => ''
+                'value' => '',
             ],
             [
                 'name' => 'theme',
-                'value' => 'CloudTheme'
+                'value' => 'CloudTheme',
             ],
             [
                 'name' => 'fake_clicks',
-                'value' => '0'
+                'value' => '0',
             ],
             [
                 'name' => 'fake_links',
-                'value' => '0'
+                'value' => '0',
             ],
             [
                 'name' => 'fake_users',
-                'value' => '0'
+                'value' => '0',
             ],
         ];
 
@@ -78,7 +79,7 @@ class Version320 extends AbstractMigration
             ])
             ->addColumn('model', 'string', [
                 'default' => null,
-                'limit' => 255,
+                'limit' => 20,
                 'null' => false,
             ])
             ->addColumn('foreign_key', 'integer', [
@@ -88,7 +89,7 @@ class Version320 extends AbstractMigration
             ])
             ->addColumn('field', 'string', [
                 'default' => null,
-                'limit' => 255,
+                'limit' => 20,
                 'null' => false,
             ])
             ->addColumn('content', 'text', [
@@ -102,7 +103,8 @@ class Version320 extends AbstractMigration
                     'model',
                     'foreign_key',
                     'field',
-                ], ['unique' => true]
+                ],
+                ['unique' => true]
             )
             ->addIndex(
                 [
@@ -113,9 +115,7 @@ class Version320 extends AbstractMigration
             )
             ->create();
 
-        $this->table('testimonials',[
-                'collation' => 'utf8_general_ci'
-            ])
+        $this->table('testimonials')
             ->addColumn('id', 'integer', [
                 'autoIncrement' => true,
                 'default' => null,
@@ -166,7 +166,7 @@ class Version320 extends AbstractMigration
                 'default' => '',
                 'limit' => 255,
                 'null' => false,
-                'after' => 'url'
+                'after' => 'url',
             ])
             ->update();
 
@@ -174,7 +174,7 @@ class Version320 extends AbstractMigration
             ->changeColumn('website_url', 'string', [
                 'default' => '',
                 'limit' => 500,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex('user_id', ['name' => 'idx_userid'])
             ->addIndex(['default_campaign', 'ad_type', 'status', 'traffic_source'], ['name' => 'idx_campaigns'])
@@ -184,7 +184,7 @@ class Version320 extends AbstractMigration
             ->changeColumn('country', 'string', [
                 'default' => '',
                 'limit' => 3,
-                'null' => false
+                'null' => false,
             ])
             ->changeColumn('weight', 'float', [
                 'default' => 0,
@@ -199,7 +199,7 @@ class Version320 extends AbstractMigration
             ->changeColumn('alias', 'string', [
                 'default' => '',
                 'limit' => 30,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex(['alias', 'status'], ['name' => 'idx_alias_status'])
             ->addIndex(['user_id', 'status', 'ad_type'], ['name' => 'idx_userid_status_adtype'])
@@ -209,7 +209,7 @@ class Version320 extends AbstractMigration
             ->changeColumn('name', 'string', [
                 'default' => '',
                 'limit' => 30,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex('name', ['name' => 'idx_name'])
             ->update();
@@ -218,7 +218,7 @@ class Version320 extends AbstractMigration
             ->changeColumn('slug', 'string', [
                 'default' => '',
                 'limit' => 255,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex(['slug', 'published'], ['name' => 'idx_slug_published'])
             ->update();
@@ -227,12 +227,12 @@ class Version320 extends AbstractMigration
             ->changeColumn('ip', 'string', [
                 'default' => '',
                 'limit' => 45,
-                'null' => false
+                'null' => false,
             ])
             ->changeColumn('country', 'string', [
                 'default' => '',
                 'limit' => 6,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex('user_id', ['name' => 'idx_userid'])
             ->addIndex('ip', ['name' => 'idx_ip'])
@@ -246,12 +246,12 @@ class Version320 extends AbstractMigration
             ->changeColumn('api_token', 'string', [
                 'default' => '',
                 'limit' => 40,
-                'null' => false
+                'null' => false,
             ])
             ->changeColumn('activation_key', 'string', [
                 'default' => '',
                 'limit' => 40,
-                'null' => false
+                'null' => false,
             ])
             ->addIndex('referred_by', ['name' => 'idx_referredby'])
             ->addIndex(['status', 'id'], ['name' => 'idx_status_id'])
@@ -280,7 +280,7 @@ class Version320 extends AbstractMigration
             "'theme'",
             "'fake_clicks'",
             "'fake_clicks'",
-            "'fake_users'"
+            "'fake_users'",
         ]);
         $this->execute("DELETE FROM `{$table_prefix}options` WHERE `name` IN ({$items});");
 

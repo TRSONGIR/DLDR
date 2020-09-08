@@ -2,9 +2,12 @@
 
 namespace App\Controller\Member;
 
-use App\Controller\Member\AppMemberController;
 use App\Form\ContactForm;
 
+/**
+ * @property \App\Controller\Component\CaptchaComponent $Captcha
+ * @property \Cake\ORM\Table $Forms
+ */
 class FormsController extends AppMemberController
 {
     public function initialize()
@@ -16,12 +19,13 @@ class FormsController extends AppMemberController
     {
         $contact = new ContactForm();
 
-        if ($this->request->is('post')) {
-            if ($contact->execute($this->request->data)) {
-                $this->Flash->success('We will get back to you soon.');
+        if ($this->getRequest()->is('post')) {
+            if ($contact->execute($this->getRequest()->data)) {
+                $this->Flash->success(__('We will get back to you soon.'));
+
                 return $this->redirect(['action' => 'support']);
             } else {
-                $this->Flash->error('There was a problem submitting your form.');
+                $this->Flash->error(__('There was a problem submitting your form.'));
             }
         }
         $this->set('contact', $contact);

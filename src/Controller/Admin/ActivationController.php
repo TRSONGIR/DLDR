@@ -2,44 +2,73 @@
 
 namespace App\Controller\Admin;
 
-use App\Controller\Admin\AppAdminController;
 use Cake\ORM\TableRegistry;
 use Cake\Cache\Cache;
 
+/**
+ * @property \App\Model\Table\ActivationTable $Activation
+ */
 class ActivationController extends AppAdminController
 {
     public function index()
     {
-        if ($this->request->is('post')) {
-            $response = $this->Activation->licenseCurlRequest($this->request->data);
-			$response2 = $this->Activation->licenseCurlRequestrtl($this->request->data);
+        if ($this->getRequest()->is('post')) {
+            $response = $this->Activation->licenseCurlRequest($this->getRequest()->data);
 
             $result = json_decode($response->body, true);
-			
-			if($response2->body == '1' || $result['result'] == '1'){
-				$result = json_decode('{"result":"1","item":"adlinkfly"}', true);
-			}else{
-				$result = json_decode('{"result":"741257","item":"adlinkfly"}', true);
-			}
 
-            if (isset($result['result']) && $result['result'] == 1) {
-                Cache::write('fa_response_result', $result, '1week');
+            if (isset($result['item']['id']) && $result['item']['id'] == 16887109) {
+                Cache::write('license_response_result', data_encrypt($result), '1month');
 
-                $Options = TableRegistry::get('Options');
+                $Options = TableRegistry::getTableLocator()->get('Options');
 
                 $personal_token = $Options->find()->where(['name' => 'personal_token'])->first();
-                $personal_token->value = trim($this->request->data['personal_token']);
+                $personal_token->value = trim($this->getRequest()->data['personal_token']);
                 $Options->save($personal_token);
 
                 $purchase_code = $Options->find()->where(['name' => 'purchase_code'])->first();
-                $purchase_code->value = trim($this->request->data['purchase_code']);
+                $purchase_code->value = trim($this->getRequest()->data['purchase_code']);
                 $Options->save($purchase_code);
 
                 $this->Flash->success(__('Your license has been verified.'));
+
                 return $this->redirect(['controller' => 'Users', 'action' => 'dashboard']);
             } else {
-                    $this->Flash->error('اطلاعات وارد شده تایید نشد. لطفا با پشتیبانی راستچین در تماس باشید. اگر بابت استفاده از این اسکریپت هزینه ای به ما پرداخت نکرده اید از لحاظ شرعی حرام  میباشد.');
+                if (isset($response->error) && !empty($response->error)) {
+                    $this->Flash->error($response->error);
+
                     return null;
+                }
+
+                if (isset($result['Message']) && !empty($result['Message'])) {
+                    $this->Flash->error($result['Message']);
+
+                    return null;
+                }
+
+                if (isset($result['message']) && !empty($result['message'])) {
+                    $this->Flash->error($result['message']);
+
+                    return null;
+                }
+
+                if (isset($result['description']) && !empty($result['description'])) {
+                    $this->Flash->error($result['description']);
+
+                    return null;
+                }
+
+                if (isset($result['error_description']) && !empty($result['error_description'])) {
+                    $this->Flash->error($result['error_description']);
+
+                    return null;
+                }
+
+                if (isset($result['error'])) {
+                    $this->Flash->error($result['error']);
+
+                    return null;
+                }
             }
         }
     }
